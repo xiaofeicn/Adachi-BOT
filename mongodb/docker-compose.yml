@@ -1,0 +1,14 @@
+version: '3.1'
+services:
+  mongo:
+    image: mongo:5.0.4
+    container_name: adachi-mongodb
+    restart: always
+    ports:
+      - 9933:27017
+    volumes:
+      - ../data/mongodb:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: adachi
+      MONGO_INITDB_ROOT_USERNAME: adachi
+      MONGO_INITDB_ROOT_PASSWORD: adachi
