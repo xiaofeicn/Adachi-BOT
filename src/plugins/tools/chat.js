@@ -19,7 +19,7 @@ async function chat(msg) {
 
     if (200 === response.status) {
         const { data } = await response.json();
-        const talk=data['info']['text'].replace("小思", "派蒙")
+        const talk=data['info']['text'].replace("小思", "派蒙").replace("思知", "提瓦特")
         return msg.bot.say(msg.sid, `${talk}`, msg.type, msg.uid, true, "\n");
     }
 
