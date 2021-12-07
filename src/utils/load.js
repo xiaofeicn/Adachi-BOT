@@ -171,24 +171,23 @@ function processedPossibleCommand(msg, plugins, type, bot) {
         }
       }
     }
-    if(!pulgins_match){
-      msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
-      msg.type = type;
-      msg.uid = msg.user_id;
-      msg.gid = msg.group_id;
-      msg.sid = "group" === msg.type ? msg.gid : msg.uid;
-      msg.bot=bot;
-      if("group" === msg.type){
-        if (atMe){
-          chat(msg);
-        }
-      }else {
+  }
+  if(!pulgins_match){
+    msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
+    msg.type = type;
+    msg.uid = msg.user_id;
+    msg.gid = msg.group_id;
+    msg.sid = "group" === msg.type ? msg.gid : msg.uid;
+    msg.bot=bot;
+    if("group" === msg.type){
+      if (atMe){
         chat(msg);
       }
-
-
+    }else {
+      chat(msg);
     }
   }
+
 }
 
 function processedGroup(msg, bot) {
