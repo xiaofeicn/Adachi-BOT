@@ -608,6 +608,8 @@ function readSetting() {
     viewDebug: 0,
     // 不保存图片
     saveImage: 0,
+    // 思知appid
+    szAPIAppid: "",
   };
 
   // 用于兼容旧配置，已经被 accounts 取代
@@ -633,6 +635,7 @@ function readSetting() {
   const dbInfoEffectTime = parseInt(Setting.dbInfoEffectTime);
   const viewDebug = parseInt(Setting.viewDebug);
   const saveImage = parseInt(Setting.saveImage);
+  const szAPIAppid = Setting.szAPIAppid;
 
   const getConfig = (...pairs) => {
     pairs &&
@@ -668,7 +671,8 @@ function readSetting() {
     { dbAbyEffectTime },
     { dbInfoEffectTime },
     { viewDebug },
-    { saveImage }
+    { saveImage },
+    { szAPIAppid }
   );
 
   // 设置每个 QQ 账户的登录选项默认值

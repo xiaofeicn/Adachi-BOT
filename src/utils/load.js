@@ -3,6 +3,7 @@ import path from "path";
 import lodash from "lodash";
 import { checkAuth } from "./auth.js";
 import { getRandomInt } from "./tools.js";
+import { chat } from "../plugins/tools/chat.js";
 
 // 无需加锁
 const timestamp = {};
@@ -119,6 +120,23 @@ function processedPossibleCommand(msg, plugins, type, bot) {
         break;
       }
     }
+  }
+  if(thisPrefix == null){
+    msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
+    msg.type = type;
+    msg.uid = msg.user_id;
+    msg.gid = msg.group_id;
+    msg.sid = "group" === msg.type ? msg.gid : msg.uid;
+    msg.bot=bot;
+    bot.say(msg.sid, match, msg.type, msg.uid);
+    if("group" === msg.type){
+      if (atMe){
+        chat(msg);
+      }
+    }else {
+      chat(msg);
+    }
+
   }
 
   if (!match) {
