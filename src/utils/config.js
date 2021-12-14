@@ -35,6 +35,7 @@
  *     weights: { hello_world: 9999, eat: 9999 },
  *     name: { hello_world: 'hello world', eat: 'eat' },
  *     usage: { hello_world: undefined, eat: undefined },
+ *     revert: { hello_world: false, eat: false },
  *     description: { hello_world: 'I will say hello to you', eat: 'What to eat' },
  *     entrance: { hello_world: [ '^hello' ], eat: [ '^eat' ] },
  *     options: { eat: { apple: '苹果', banana: '香蕉', egg: '蛋' } }
@@ -66,6 +67,7 @@
  *       weights: 9999
  *       name: hello world
  *       usage:
+ *       revert: false
  *       description: I will say hello to you
  *       entrance:
  *         - ^hello
@@ -81,6 +83,7 @@
  *       weights: 9999
  *       name: eat
  *       usage:
+ *       revert: false
  *       description: What to eat
  *       entrance:
  *         - ^eat
@@ -331,11 +334,10 @@
  * --------------------------------------------------------------------------
  * { MonThu: [ '刻晴', '风鹰剑' ] }
  * --------------------------------------------------------------------------
- * ../../config/material.yml
+ * global.info.character
+ * global.info.weapon
  * --------------------------------------------------------------------------
- * MonThu:
- *   - 刻晴
- *   - 风鹰剑
+ * 数据结构见其后说明。
  * ==========================================================================
  *
  *
@@ -381,7 +383,6 @@ const Command = loadYML("command");
 const Cookies = loadYML("cookies");
 const Eggs = loadYML("pool_eggs");
 const Greeting = loadYML("greeting");
-const Material = loadYML("material");
 const Master = loadYML("command_master");
 const Menu = loadYML("menu");
 const Names = loadYML("names");
@@ -397,6 +398,7 @@ const Setting = loadYML("setting");
 // global[key].functions.weights     -> function (lowercase):  weights (number)
 // global[key].functions.name        -> function (lowercase):  name (string)
 // global[key].functions.usage       -> function (lowercase):  usage (string)
+// global[key].functions.revert      -> function (lowercase):  revert (boolean)
 // global[key].functions.description -> function (lowercase):  description (string)
 // global[key].functions.entrance    -> function (lowercase):  entrance (array of string, lowercase)
 // global[key].functions.options     -> function (lowercase):  { function: { option: text } } (both lowercase)
@@ -492,6 +494,7 @@ function getCommand(obj, key) {
     add(obj, key, name, "weights", reduce, [true, false], 0);
     add(obj, key, name, "name", reduce, [true, false]);
     add(obj, key, name, "usage", reduce, [true, false]);
+    add(obj, key, name, "revert", reduce, [true, false], false);
     add(obj, key, name, "description", reduce, [true, false]);
     add(obj, key, name, "entrance", deepReduce, [true, true]);
     add(obj, key, name, "options", deepReduce, [true, true]);
@@ -568,13 +571,21 @@ function makeUsage(obj) {
         text +=
           listMark +
           " " +
-          obj.functions.name[func] +
-          " " +
-          (obj.functions.usage[func] ? obj.functions.usage[func] + " " : "") +
-          ("option" === type
-            ? (obj.functions.options[func] && "<" + Object.values(obj.functions.options[func]).join("、")) + "> "
-            : "") +
-          (obj.functions.description[func] ? commentMark + " " : "") +
+          (true === obj.functions.revert[func]
+            ? ("option" === type
+                ? null !== obj.functions.options[func] && Object.values(obj.functions.options[func]).join("、")
+                : "") +
+              obj.functions.name[func] +
+              " " +
+              (null !== obj.functions.usage[func] ? obj.functions.usage[func] + " " : "")
+            : obj.functions.name[func] +
+              " " +
+              (null !== obj.functions.usage[func] ? obj.functions.usage[func] + " " : "") +
+              ("option" === type
+                ? (null !== obj.functions.options[func] &&
+                    "<" + Object.values(obj.functions.options[func]).join("、")) + "> "
+                : "")) +
+          (null !== obj.functions.description[func] ? commentMark + " " : "") +
           (obj.functions.description[func] || "") +
           "\n";
       }
@@ -852,25 +863,6 @@ function readArtifacts() {
   global.artifacts.domains.product = reduce("domains", ["id", "product"], [false, false]);
 }
 
-// global.material.MonThu   -> array of name (string, lowercase)
-// global.material.TueFri   -> array of name (string, lowercase)
-// global.material.WedSat   -> array of name (string, lowercase)
-function readMaterial() {
-  global.material = {};
-
-  Object.keys(Material).forEach((k) => {
-    global.material[k] = Material[k];
-
-    if (Array.isArray(global.material[k])) {
-      for (let i = 0; i < global.material[k].length; ++i) {
-        if ("string" === typeof global.material[k][i]) {
-          global.material[k][i] = global.material[k][i].toLowerCase();
-        }
-      }
-    }
-  });
-}
-
 // Call after readNames()
 //
 // global.info.character    -> array of { type, title, id , name, introduce, birthday, element, cv, constellationName,
@@ -904,6 +896,37 @@ function readInfo() {
       "rarity"
     )
     .reverse();
+}
+
+// global.material.MonThu   -> array of name (string, lowercase)
+// global.material.TueFri   -> array of name (string, lowercase)
+// global.material.WedSat   -> array of name (string, lowercase)
+function readMaterial() {
+  const keyFromZhou = {
+    周一: ["MonThu"],
+    周二: ["TueFri"],
+    周三: ["WedSat"],
+    旅行者每日占位符: ["MonThu", "TueFri", "WedSat"],
+  };
+
+  global.material = {};
+
+  lodash
+    .chain(keyFromZhou)
+    .values()
+    .concat()
+    .flatten()
+    .uniq()
+    .each((k) => (global.material[k] = []))
+    .value();
+
+  global.info.character.concat(global.info.weapon).forEach((c) =>
+    Object.keys(keyFromZhou).forEach((zhou) => {
+      if (undefined !== c.time && "string" === typeof c.time && c.time.includes(zhou)) {
+        keyFromZhou[zhou].forEach((k) => global.material[k].push(c.name.toString().toLowerCase()));
+      }
+    })
+  );
 }
 
 // global.command
@@ -941,6 +964,7 @@ function getUsage() {
 }
 
 function readConfig() {
+  // 不要改变调用顺序
   readSetting();
   readCookies();
   readGreeting();
