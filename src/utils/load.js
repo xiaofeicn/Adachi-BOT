@@ -121,7 +121,7 @@ function processedPossibleCommand(msg, plugins, type, bot) {
       }
     }
   }
-  let pulgins_match=false
+  let pulgins_match = false;
   if (!match) {
     return false;
   }
@@ -134,7 +134,7 @@ function processedPossibleCommand(msg, plugins, type, bot) {
     const plugin = regexPool[regex];
 
     if (enableList[plugin] && r.test(msg.raw_message)) {
-      pulgins_match=true
+      pulgins_match = true;
       // 只允许管理者执行主人命令
       if (global.master.enable[plugin] && !global.config.masters.includes(msg.user_id)) {
         const id = "group" === type ? msg.group_id : msg.user_id;
@@ -172,22 +172,21 @@ function processedPossibleCommand(msg, plugins, type, bot) {
       }
     }
   }
-  if(!pulgins_match){
+  if (!pulgins_match) {
     msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
     msg.type = type;
     msg.uid = msg.user_id;
     msg.gid = msg.group_id;
     msg.sid = "group" === msg.type ? msg.gid : msg.uid;
-    msg.bot=bot;
-    if("group" === msg.type){
-      if (atMe){
+    msg.bot = bot;
+    if ("group" === msg.type) {
+      if (atMe) {
         chat(msg);
       }
-    }else {
+    } else {
       chat(msg);
     }
   }
-
 }
 
 function processedGroup(msg, bot) {
