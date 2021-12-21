@@ -68,7 +68,7 @@ const template = `<div class="user-base-page">
       </div>
     </div>
     </div>
-    <p class="author">Created by Adachi-BOT</p>
+    <p class="author">Created by Adachi-BOT Of Suzhen Bai</p>
   </div>
 </div>`;
 
