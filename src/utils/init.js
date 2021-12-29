@@ -1,7 +1,10 @@
 import schedule from "node-schedule";
 import express from "express";
 import db from "./database.js";
+import { renderClose } from "./render.js";
 import { gachaUpdate as updateGachaJob } from "./update.js";
+
+let postRunning = false;
 
 function initDB() {
   db.init("aby");
@@ -23,6 +26,12 @@ function cleanDB(name) {
   return nums;
 }
 
+async function lastWords() {
+  for (const bot of global.bots) {
+    await bot.sayMaster(undefined, "我下线了。");
+  }
+}
+
 function cleanDBJob() {
   let nums = 0;
   nums += cleanDB("aby");
@@ -39,6 +48,21 @@ function syncDBJob() {
   });
 }
 
+async function doPost() {
+  if (false === postRunning) {
+    postRunning = true;
+    await renderClose();
+    await lastWords();
+    syncDBJob();
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    postRunning = false;
+  } else {
+    while (true === postRunning) {
+      await new Promise((resolve) => setTimeout(() => resolve(), 100));
+    }
+  }
+}
+
 function serve(port = 9934) {
   const server = express();
   server.use(express.static(global.rootdir));
@@ -51,9 +75,9 @@ async function init() {
   updateGachaJob();
   cleanDBJob();
 
-  process.on("SIGINT", syncDBJob);
-  process.on("SIGTERM", syncDBJob);
-  process.on("SIGHUP", syncDBJob);
+  for (const signal of ["SIGHUP", "SIGINT", "SIGTERM"]) {
+    process.on(signal, () => doPost().then((n) => process.exit(n)));
+  }
 
   schedule.scheduleJob("1 */1 * * *", async () => updateGachaJob());
   schedule.scheduleJob("1 */1 * * *", async () => cleanDBJob());

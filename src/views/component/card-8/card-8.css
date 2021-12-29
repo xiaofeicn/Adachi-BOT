@@ -280,8 +280,7 @@ body {
 .exploration {
   width: 198px;
   height: 66px;
-  background: no-repeat center/100%
-    url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/user-nase-exp-bg.png");
+  background: no-repeat center/100% url("http://localhost:9934/resources/Version2/module/user-nase-exp-bg.png");
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -396,7 +395,7 @@ body {
   grid-template-columns: auto max-content;
   justify-items: end;
   align-items: end;
-  align-self: self-end;
+  align-self: flex-end;
   margin-right: 14px;
   margin-top: 8px;
 }
