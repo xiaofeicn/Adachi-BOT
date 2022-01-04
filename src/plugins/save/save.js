@@ -33,7 +33,7 @@ function doSave(msg, action = "save") {
   switch (action) {
     case "save":
       if (!db.includes("map", "user", "userID", msg.uid)) {
-          const ss={ userID: msg.uid, mhyID };
+        const ss = { userID: msg.uid, mhyID };
         msg.bot.logger.info(`${ss}`);
         db.push("map", "user", { userID: msg.uid, mhyID });
         msg.bot.say(msg.sid, `通行证绑定成功，${okMsg}`, msg.type, msg.uid, true);
