@@ -10,7 +10,7 @@ const template = `<div class="material">
       </div>
     </div>
   </div>
-  <p class="author">Created by Adachi-BOT Of Suzhen Bai</p>
+  <p class="author">Created by Adachi-BOT</p>
 </div>`;
 
 import MaterialColumn from "./column.js";

@@ -67,7 +67,7 @@ const template = `<div class="user-base-page">
     </div>
     </div>
 <!--<<<<<<< HEAD-->
-    <p class="author">Created by Adachi-BOT Of Suzhen Bai</p>
+<!--    <p class="author">Created by Adachi-BOT Of Suzhen Bai</p>-->
 <!--=======-->
     <div v-if="hasPlayerNameInfo" class="container-traveler-signature">
         <p class="signature-header">签名</p>
