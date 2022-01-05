@@ -1,9 +1,10 @@
 import figlet from "figlet";
 import lodash from "lodash";
 import { createClient } from "oicq";
-import { init } from "./src/utils/init.js";
 import { readConfig } from "./src/utils/config.js";
+import { init } from "./src/utils/init.js";
 import { loadPlugins, processed } from "./src/utils/load.js";
+import { fromCqcode } from "./src/utils/oicq.js";
 
 global.bots = [];
 
@@ -23,34 +24,77 @@ function login() {
       delimiter = " ",
       atSender = true
     ) => {
-      if (msg && "" !== msg) {
-        switch (type) {
-          case "group": {
-            if (global.config.atUser && sender && atSender) {
-              msg = `[CQ:at,qq=${sender}]${delimiter}${msg}`;
-            }
+      try {
+        if (msg && "" !== msg) {
+          switch (type) {
+            case "group": {
+              if (global.config.atUser && sender && atSender) {
+                msg = `[CQ:at,type=at,qq=${sender}]${delimiter}${msg}`;
+              }
 
-            // XXX 非管理员允许撤回两分钟以内的消息
-            const permissionOK =
-              global.config.deleteGroupMsgTime < 120
-                ? true
-                : "admin" === (await bot.getGroupMemberInfo(id, bot.uin)).data.role;
-            const { message_id: mid } = (await bot.sendGroupMsg(id, msg)).data || {};
+              // XXX 非管理员允许撤回两分钟以内的消息
+              const permissionOK =
+                global.config.deleteGroupMsgTime < 120
+                  ? true
+                  : "admin" === (await bot.getGroupMemberInfo(id, bot.uin)).role;
+              const { message_id: mid } = await bot.sendGroupMsg(id, fromCqcode(msg));
 
-            if (true === tryDelete && undefined !== mid && global.config.deleteGroupMsgTime > 0 && permissionOK) {
-              setTimeout(bot.deleteMsg.bind(bot), global.config.deleteGroupMsgTime * 1000, mid);
+              if (true === tryDelete && undefined !== mid && global.config.deleteGroupMsgTime > 0 && permissionOK) {
+                setTimeout(bot.deleteMsg.bind(bot), global.config.deleteGroupMsgTime * 1000, mid);
+              }
+              break;
             }
-            break;
+            case "private": {
+              let isFriend = false;
+
+              for (const [, f] of bot.fl) {
+                if (id === f.user_id) {
+                  isFriend = true;
+                  break;
+                }
+              }
+
+              if (true === isFriend) {
+                bot.sendPrivateMsg(id, fromCqcode(msg));
+                return;
+              }
+
+              let gid;
+
+              for (const [, g] of bot.gl) {
+                const members = await bot.getGroupMemberList(g.group_id);
+                let find = false;
+
+                for (const [, m] of members) {
+                  if (id === m.user_id) {
+                    gid = g.group_id;
+                    find = true;
+                    break;
+                  }
+                }
+
+                if (true === find) {
+                  break;
+                }
+              }
+
+              if (undefined === gid) {
+                throw `未找到陌生人 ${id} 所在的群组`;
+              }
+
+              bot.sendTempMsg(gid, id, fromCqcode(msg));
+              break;
+            }
           }
-          case "private":
-            bot.sendPrivateMsg(id, msg);
-            break;
         }
+      } catch (e) {
+        const info = "string" === typeof e.message ? e.message : e;
+        bot.logger.error(`错误：消息发送失败，因为“${info}”。`);
       }
     };
     bot.sayMaster = async (id, msg, type = undefined, user = undefined) => {
       if (Array.isArray(global.config.masters) && global.config.masters.length) {
-        global.config.masters.forEach((master) => master && bot.sendPrivateMsg(master, msg));
+        global.config.masters.forEach((master) => master && bot.say(master, msg, "private"));
       } else {
         if (undefined !== id && "string" === typeof type && undefined !== user) {
           bot.say(id, "未设置我的主人。", type, user);
@@ -65,24 +109,26 @@ function login() {
 
     global.bots.push(bot);
 
-    // 处理登录滑动验证码
-    bot.on("system.login.slider", () => {
-      process.stdin.once("data", (input) => bot.sliderLogin(input.toString()));
-    });
+    if ("string" === typeof account.password) {
+      // 处理登录滑动验证码
+      bot.on("system.login.slider", () => process.stdin.once("data", (input) => bot.sliderLogin(input.toString())));
 
-    // 处理登录图片验证码
-    bot.on("system.login.captcha", () => {
-      process.stdin.once("data", (input) => bot.captchaLogin(input.toString()));
-    });
+      // 处理设备锁事件
+      bot.on("system.login.device", () => {
+        bot.logger.info("在浏览器中打开网址，手机扫码完成后按下回车键继续。");
+        process.stdin.once("data", () => bot.login());
+      });
 
-    // 处理设备锁事件
-    bot.on("system.login.device", () => {
-      bot.logger.info("在浏览器中打开网址，手机扫码完成后按下回车键继续。");
-      process.stdin.once("data", () => bot.login());
-    });
+      bot.login(account.password);
+    } else {
+      // 处理登录二维码
+      bot.on("system.login.qrcode", () => {
+        bot.logger.mark("手机扫码完成后按下回车键继续。");
+        process.stdin.once("data", () => bot.login());
+      });
 
-    // 登录
-    bot.login(account.password);
+      bot.login();
+    }
   }
 
   global.bots.logger = global.bots[0] && global.bots[0].logger;

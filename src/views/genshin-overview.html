@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>genshin-overview</title>
-    <script src="../../data/js/vue2.js"></script>
+    <script src="../../data/js/vue2.min.js"></script>
     <link rel="stylesheet" href="./component/overview/overview.css" />
   </head>
 
@@ -13,7 +13,7 @@
         <img class="background" :src="infoBackground" alt="ERROR" />
         <img :class="'角色' === type ? 'character' : 'weapon'" :src="mainImage" alt="ERROR" />
         <div class="content">
-          <p class="title-and-name" v-if="name == '旅行者'">「旅行者」</p>
+          <p class="title-and-name" v-if="name === '旅行者'">「旅行者」</p>
           <p class="title-and-name" v-else>「{{ title }}·{{ name }}」</p>
         </div>
         <div class="introduction">
@@ -137,9 +137,12 @@
           </div>
         </div>
       </div>
+      <div v-if="rarity <= 2" class="credit">Created by Adachi-BOT</div>
     </div>
 
-    <script>
+    <script type="module">
+      import { getParams } from "./component/common/param.js";
+
       new Vue({
         el: "#app",
         data: {
@@ -175,9 +178,7 @@
           },
         },
         mounted() {
-          const params = JSON.parse(
-            decodeURIComponent(escape(window.atob(new URL(window.location.href).searchParams.get("data")) || "{}"))
-          );
+          const params = getParams(window.location.href);
 
           this.rarity = params.rarity;
           this.name = params.name;

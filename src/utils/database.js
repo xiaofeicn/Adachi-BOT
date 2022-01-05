@@ -120,9 +120,9 @@ function cleanByTimeDB(dbName, dbKey = ["user", "uid"], timeRecord = "uid", mill
   }
 
   const timeDBRecords = get("time", "user");
-  let records = get(dbName, dbKey[0]);
+  const records = get(dbName, dbKey[0]);
 
-  if (!records) {
+  if (undefined === records || !Array.isArray(records)) {
     return nums;
   }
 
@@ -134,13 +134,15 @@ function cleanByTimeDB(dbName, dbKey = ["user", "uid"], timeRecord = "uid", mill
     return nums;
   }
 
-  for (const i in records) {
+  for (let i = 0, len = records.length; i < len; ++i) {
     const uid = records[i][dbKey[1]];
 
     // 没有基准字段则删除该记录（因为很可能是错误数据）
     if (!uid || !has(dbName, dbKey[0], i, dbKey[1])) {
       records.splice(i, 1);
-      nums++;
+      --i;
+      --len;
+      ++nums;
       continue;
     }
 
@@ -151,7 +153,9 @@ function cleanByTimeDB(dbName, dbKey = ["user", "uid"], timeRecord = "uid", mill
 
     if (!time || now - time > milliseconds) {
       records.splice(i, 1);
-      nums++;
+      --i;
+      --len;
+      ++nums;
     }
   }
 
@@ -166,14 +170,20 @@ function cleanCookies() {
   let nums = 0;
 
   for (const key of keys) {
-    let records = get(dbName, key);
+    const records = get(dbName, key);
 
-    for (const i in records) {
+    if (undefined === records || !Array.isArray(records)) {
+      continue;
+    }
+
+    for (let i = 0, len = records.length; i < len; ++i) {
       // 1. 没有基准字段则删除该记录
       // 2. 不是今天的记录一律删除
-      if (!records[i].date || today != records[i].date) {
+      if (!records[i].date || today !== records[i].date) {
         records.splice(i, 1);
-        nums++;
+        --i;
+        --len;
+        ++nums;
       }
     }
   }
@@ -187,10 +197,16 @@ function cleanCookiesInvalid() {
   const records = get(dbName, "cookie") || [];
   let nums = 0;
 
-  for (const i in records) {
+  if (undefined === records || !Array.isArray(records)) {
+    return nums;
+  }
+
+  for (let i = 0, len = records.length; i < len; ++i) {
     if (!records[i].cookie || !global.cookies.includes(records[i].cookie)) {
       records.splice(i, 1);
-      nums++;
+      --i;
+      --len;
+      ++nums;
     }
   }
 

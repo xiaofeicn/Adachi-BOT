@@ -87,6 +87,7 @@ import HomeBox from "./home-box.js";
 
 // eslint-disable-next-line no-undef
 const { defineComponent, computed } = Vue;
+import { getParams } from "../common/param.js";
 
 export default defineComponent({
   name: "Card8Box",
@@ -98,11 +99,7 @@ export default defineComponent({
     HomeBox,
   },
   setup() {
-    const params = JSON.parse(
-      decodeURIComponent(escape(window.atob(new URL(window.location.href).searchParams.get("data")) || "{}"))
-    );
-
-    params.avatars = params.avatars.slice(0, 8);
+    const params = getParams(window.location.href);
 
     function findArea(id) {
       return params.explorations.find((el) => el.id === id);
