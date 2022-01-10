@@ -8,11 +8,7 @@ const background = {
     character: {
       type: Number,
     },
-  },
-  computed: {
-    image() {
-      return "http://localhost:9934/resources/Version2/character/" + this.character + ".png";
-    },
+    path: String,
   },
 };
 
@@ -96,11 +92,6 @@ const reliquaries = {
 // eslint-disable-next-line no-unused-vars
 const weaponBox = {
   template: "#weapon-box",
-  data() {
-    return {
-      len: 0,
-    };
-  },
   props: {
     weapon: {
       type: Object,
@@ -111,12 +102,6 @@ const weaponBox = {
           desc: "",
           name: "",
         };
-      },
-    },
-    len: {
-      type: Number,
-      default() {
-        return 0;
       },
     },
   },

@@ -234,25 +234,31 @@ npm run restart
 > 2. 仅展示了部分功能。
 
 <details>
-  <summary>展示玩家信息</summary>
+  <summary>展示玩家信息：<米游社></summary>
   <div align="center">
 
-![米游社](images/米游社.png)
+![米游社](images/米游社.jpg)
 
   </div>
 </details>
 
 <details>
-  <summary>查询我的角色</summary>
+  <summary>查询我的角色：<我的刻晴></summary>
   <div align="center">
 
-![我的](images/我的.png)
+![我的](images/我的.jpg)
 
   </div>
 </details>
 
 <details>
-  <summary>查询深渊战绩</summary>
+<summary>某日素材查询：<周一素材></summary>
+
+![素材查询](https://user-images.githubusercontent.com/9006264/148671284-8e38a9a6-fd57-4458-b3d7-6ce7b8cf95fc.png)
+</details>
+
+<details>
+  <summary>查询深渊战绩：<深渊[uid]></summary>
   <div align="center">
 
 ![深渊](images/深渊.png)
@@ -262,7 +268,7 @@ npm run restart
 
 
 <details>
-  <summary>圣遗物掉落和强化</summary>
+  <summary>圣遗物掉落和强化：<圣遗物[副本名称或编号]><强化></summary>
   <div align="center">
 
 ![圣遗物](images/圣遗物.png)
@@ -272,7 +278,7 @@ npm run restart
 </details>
 
 <details>
-  <summary>祈愿十连</summary>
+  <summary>祈愿十连：<十连></summary>
   <div align="center">
 
 ![十连](images/十连.png)
@@ -281,13 +287,12 @@ npm run restart
 </details>
 
 <details>
-  <summary>游戏数据查询</summary>
-  <div align="center">
-
-![角色](images/角色.png)
+<summary>游戏数据查询：<信息刻晴><信息幽夜></summary>
+<div align="center">
+    
+![角色](images/角色.jpg)
 ![武器](images/武器.png)
-
-  </div>
+</div>
 </details>
 
 ## 致谢
