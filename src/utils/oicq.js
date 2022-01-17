@@ -1,13 +1,11 @@
 /* ========================================================================== *
- * 文件的原始版本来源于 oicq 。
- * https://github.com/takayama-lily/oicq
- * ==========================================================================
- * 因为 oicq 维护的这几个 API 有兼容性问题，所以在此重新实现。另外添加了一些自己的封装。
+ * 因为 oicq 维护的兼容 API 有问题，所以在此重新实现。另外添加了一些自己的封装。
  * ========================================================================== */
 
 import lodash from "lodash";
 import querystring from "querystring";
 import { genDmMessageId } from "oicq/lib/message/message.js";
+import { matchBracket } from "./tools.js";
 
 const CQ = {
   "&#91;": "[",
@@ -86,28 +84,48 @@ function toCqcode(msg = {}) {
 
 function fromCqcode(text = "") {
   const elems = [];
-  const iter = text.matchAll(/\[CQ:[^\]]+\]/g);
-  let index = 0;
+  const items = [];
+  let itemsSize = 0;
 
-  for (const c of iter) {
-    const s = text.slice(index, c.index).replace(new RegExp(Object.keys(CQ).join("|"), "g"), (s) => CQ[s] || "");
+  for (let i = 0; i < text.length; ++i) {
+    const pos = matchBracket(text, i);
 
-    if ("string" === typeof s && "" !== s) {
-      elems.push({ type: "text", text: s });
+    switch (pos) {
+      case -1:
+      case -2:
+        items.push(text);
+        i = text.length;
+        break;
+      case -3:
+        if (undefined === items[itemsSize]) {
+          items[itemsSize] = "";
+        }
+
+        items[itemsSize] += text[i];
+        continue;
+      case -4:
+        throw `不能转换错误的信息：${text}`;
+      default:
+        if (pos > 0) {
+          items.push(text.substring(i, pos + 1));
+          i = pos;
+          itemsSize = items.length;
+          continue;
+        }
     }
-
-    let cq = c[0].replace("[CQ:", "type=");
-    cq = cq.substr(0, cq.length - 1);
-    elems.push(qs(cq));
-    index = c.index + c[0].length;
   }
 
-  if (index < text.length) {
-    const s = text.slice(index).replace(new RegExp(Object.keys(CQ).join("|"), "g"), (s) => CQ[s] || "");
+  for (const c of items) {
+    const s = c.replace(new RegExp(Object.keys(CQ).join("|"), "g"), (s) => CQ[s] || "");
+    let cq = c.replace("[CQ:", "type=");
 
-    if ("string" === typeof s) {
+    if ("string" === typeof s && "" !== s && false === s.includes("[CQ:")) {
       elems.push({ type: "text", text: s });
+      continue;
     }
+
+    cq = cq.substr(0, cq.length - 1);
+    elems.push(qs(cq));
   }
 
   return elems;
@@ -135,7 +153,7 @@ function isGroupBan(msg = {}, type, bot) {
 async function say(
   bot,
   id,
-  msg,
+  msg = "",
   type = "private",
   sender = undefined,
   tryDelete = false,
@@ -217,14 +235,51 @@ async function say(
   }
 }
 
-async function sayMaster(bot, id, msg, type = undefined, user = undefined) {
+async function sayMaster(bot, id, msg = "", type = "private", sender) {
   if (Array.isArray(global.config.masters) && global.config.masters.length) {
     global.config.masters.forEach((master) => master && say(bot, master, msg, "private"));
   } else {
-    if (undefined !== id && "string" === typeof type && undefined !== user) {
-      say(bot, id, "未设置我的主人。", type, user);
+    if (undefined !== id && "string" === typeof type && undefined !== sender) {
+      say(bot, id, "未设置我的主人。", type, sender);
     }
   }
 }
 
-export { fromCqcode, isGroupBan, say, sayMaster, toCqcode };
+function boardcast(bot, msg = "", type = "group", check = () => true) {
+  const isGroup = "group" === type;
+  const typestr = isGroup ? "群" : "好友";
+  const list = isGroup ? bot.gl : bot.fl;
+  const delay = global.config.boardcastDelay || 100;
+  let report = "";
+  let count = 0;
+
+  list.forEach((c) => {
+    if (true === check(c)) {
+      // 广播无法 @
+      const send = () => say(bot, isGroup ? c.group_id : c.user_id, msg, type);
+
+      if (delay > 0) {
+        setTimeout(send, delay * count++);
+      } else {
+        send();
+      }
+
+      report += `${isGroup ? c.group_name : c.nickname}（${isGroup ? c.group_id : c.user_id}）\n`;
+    }
+  });
+
+  if ("" === report) {
+    sayMaster(bot, undefined, `没有发现需要发送此广播的${typestr}。`);
+    return;
+  }
+
+  report += `${"-".repeat(20)}\n`;
+  report += `以上${typestr}正在发送以下广播，速度为 ${1000 / delay} 个${typestr}每秒。\n`;
+  report += `${"-".repeat(20)}\n`;
+  report += msg;
+  sayMaster(bot, undefined, report);
+
+  return delay * count;
+}
+
+export { boardcast, isGroupBan, say, sayMaster, toCqcode };

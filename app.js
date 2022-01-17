@@ -8,10 +8,11 @@ import { say, sayMaster } from "./src/utils/oicq.js";
 
 global.bots = [];
 
-function login() {
+function create() {
   for (const account of global.config.accounts) {
     const bot = createClient(account.qq, { platform: account.platform, log_level: "debug" });
 
+    bot.account = account;
     bot.say = say.bind(null, bot);
     bot.sayMaster = sayMaster.bind(null, bot);
     // 属性 sendMessage 和 sendMessage 为了兼容可能存在的旧插件
@@ -20,26 +21,6 @@ function login() {
     bot.sendMaster = bot.sayMaster;
 
     global.bots.push(bot);
-
-    if ("string" === typeof account.password) {
-      // 监听登录滑动验证码事件
-      bot.on("system.login.slider", () => process.stdin.once("data", (input) => bot.sliderLogin(input.toString())));
-      // 监听设备锁事件
-      bot.on("system.login.device", () => {
-        bot.logger.info("在浏览器中打开网址，手机扫码完成后按下回车键继续。");
-        process.stdin.once("data", () => bot.login());
-      });
-
-      bot.login(account.password);
-    } else {
-      // 监听登录二维码事件
-      bot.on("system.login.qrcode", () => {
-        bot.logger.mark("手机扫码完成后按下回车键继续。");
-        process.stdin.once("data", () => bot.login());
-      });
-
-      bot.login();
-    }
   }
 
   global.bots.logger = lodash.hasIn(global.bots, [0, "logger"]) ? global.bots[0].logger : () => {};
@@ -60,6 +41,7 @@ function report() {
   // 只打印一次日志
   const log = (text) => global.bots.logger.debug(`配置：${text}`);
 
+  log(`加载了 ${global.cookies.length} 条 Cookie 。`);
   log(`登录账号 ${lodash.map(global.config.accounts, "qq").join(" 、 ")} 。`);
   log(`管理者已设置为 ${global.config.masters.join(" 、 ")} 。`);
   log(
@@ -82,12 +64,37 @@ function report() {
       global.config.deleteGroupMsgTime > 0 ? global.config.deleteGroupMsgTime + " 秒后" : "不"
     }尝试撤回机器人发送的群消息`
   );
+  log(`广播中消息间时延 ${(global.config.boardcastDelay / 1000).toFixed(2)} 秒。`);
   log(`深渊记录将缓存 ${global.config.cacheAbyEffectTime} 小时。`);
   log(`玩家信息将缓存 ${global.config.cacheInfoEffectTime} 小时。`);
   log(`清理数据库 aby 中超过 ${global.config.dbAbyEffectTime} 小时的记录。`);
   log(`清理数据库 info 中超过 ${global.config.dbInfoEffectTime} 小时的记录。`);
   log(`${1 === global.config.viewDebug ? "" : "不"}使用前端调试模式。`);
   log(`${1 === global.config.saveImage ? "" : "不"}保存图片。`);
+}
+
+async function login() {
+  for (const bot of global.bots) {
+    if ("string" === typeof bot.account.password) {
+      // 监听登录滑动验证码事件
+      bot.on("system.login.slider", () => process.stdin.once("data", (input) => bot.sliderLogin(input.toString())));
+      // 监听设备锁事件
+      bot.on("system.login.device", () => {
+        bot.logger.info("在浏览器中打开网址，手机扫码完成后按下回车键继续。");
+        process.stdin.once("data", () => bot.login());
+      });
+
+      await bot.login(bot.account.password);
+    } else {
+      // 监听登录二维码事件
+      bot.on("system.login.qrcode", () => {
+        bot.logger.mark("手机扫码完成后按下回车键继续。");
+        process.stdin.once("data", () => bot.login());
+      });
+
+      await bot.login();
+    }
+  }
 }
 
 async function run() {
@@ -109,9 +116,10 @@ async function run() {
 
 (async function main() {
   readConfig();
-  login();
+  create();
   hello();
   report();
   await init();
+  await login();
   run();
 })();
