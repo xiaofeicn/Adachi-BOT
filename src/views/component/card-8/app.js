@@ -40,6 +40,7 @@ const template = `<div class="user-base-page">
               <p>{{ stats.magic_chest_number }}</p>
             </div>
     </div>
+<<<<<<< HEAD
     <SectionTitle class="bottom-split" :title="homeboxTitle" />
     <div class="bottom">
       <HomeBox :data="homes.hole" />
@@ -47,6 +48,18 @@ const template = `<div class="user-base-page">
       <HomeBox :data="homes.island" />
       <HomeBox :data="homes.hall" />
     </div>
+=======
+    <div class="container-home-box">
+      <SectionTitle class="bottom-split" :title="homeboxTitle" />
+      <div class="bottom">
+        <HomeBox v-for="home in homes" :data="home" />
+      </div>
+    </div>
+    <div class="quoteBox">
+        <img class="quoteImage" :src="emoticon.link" :alt="emoticon.filename" />
+        <p class="quoteText" :style="{'fontSize': emoticon.quoteFontSize}">{{emoticon.quote}}</p>
+    </div>
+>>>>>>> ArondightMaster
   </div>
   
   <div class="right">
@@ -90,9 +103,13 @@ export default defineComponent({
   template,
   components: {
     SectionTitle,
+    HomeBox,
     ExplorationBox,
     CharacterBox,
+<<<<<<< HEAD
     HomeBox,
+=======
+>>>>>>> ArondightMaster
   },
   setup() {
     const params = getParams(window.location.href);
@@ -119,14 +136,41 @@ export default defineComponent({
       return d || { name, level: -1 };
     }
 
-    const homes = {
-      hole: homeData("罗浮洞"),
-      mountain: homeData("翠黛峰"),
-      island: homeData("清琼岛"),
-      hall: homeData("绘绮庭"),
-    };
+    const homeList = ["罗浮洞", "翠黛峰", "清琼岛", "绘绮庭"];
+    const homes = homeList.map((home) => homeData(home));
+
     const comfort = Math.max(...Object.keys(homes).map((k) => homes[k].comfort_num || -Infinity));
     const homeboxTitle = `尘歌壶${comfort > 0 ? "（" + comfort + " 仙力）" : ""}`;
+
+    const defaultQuotes = ["旅行者今天去了哪里冒险呢？", "旅行者今天经历了哪些有趣的事情呢？"];
+    const defaultQuote = defaultQuotes[Math.floor(Math.random() * defaultQuotes.length)];
+    let emoticon = {};
+    if (Array.isArray(emoticons) && emoticons.length > 0) {
+      // filename: 当显示图片错误时，展示发生错误的图片名称，方便定位缺失资源
+      // link: 指向图像的链接
+      // quote: 图像引言
+      const item = emoticons[Math.floor(Math.random() * emoticons.length)];
+      const image = item.filename;
+      const quote = item.quote || defaultQuote;
+      emoticon = { filename: image, link: image, quote: quote };
+    } else {
+      emoticon = { filename: "派蒙-吃惊.png", link: "派蒙-吃惊.png", quote: defaultQuote };
+    }
+    emoticon.link = `http://localhost:9934/resources/Version2/emoticons/${emoticon.link}`;
+
+    // 返回引言的字号大小, 范围是 [10, 14]
+    function getFontSize(contextLen) {
+      const step = 20;
+      // level 向下取整，例如正好 contextLen === 20, level = 0
+      const level =
+        Math.round(contextLen % step) === 0
+          ? Math.max(0, Math.floor(contextLen / step) - 1)
+          : Math.min(Math.floor(contextLen / step), 4) || 0;
+
+      return 14 - level;
+    }
+
+    emoticon.quoteFontSize = parseInt(getFontSize(emoticon.quote.length)).toString() + "px";
 
     return {
       data: params,
@@ -138,6 +182,10 @@ export default defineComponent({
       homeboxTitle,
       hasLevelInfo,
       hasPlayerNameInfo,
+<<<<<<< HEAD
+=======
+      emoticon,
+>>>>>>> ArondightMaster
     };
   },
 });

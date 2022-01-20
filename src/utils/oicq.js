@@ -88,23 +88,27 @@ function fromCqcode(text = "") {
   let itemsSize = 0;
 
   for (let i = 0; i < text.length; ++i) {
-    const pos = matchBracket(text, i);
+    const brackets = ["[", "]"];
+    const pos = matchBracket(text, i, brackets);
 
     switch (pos) {
       case -1:
-      case -2:
-        items.push(text);
-        i = text.length;
-        break;
-      case -3:
         if (undefined === items[itemsSize]) {
           items[itemsSize] = "";
         }
 
         items[itemsSize] += text[i];
         continue;
+      case -2:
+        throw `消息 CQ 码不匹配：${text}`;
+      case -3:
       case -4:
-        throw `不能转换错误的信息：${text}`;
+        items.push(text);
+        i = text.length;
+        break;
+      case -5:
+        // This is impossible
+        throw `错误的括号匹配：${brackets.join("")}`;
       default:
         if (pos > 0) {
           items.push(text.substring(i, pos + 1));
@@ -147,6 +151,18 @@ function isGroupBan(msg = {}, type, bot) {
       return true;
     }
   }
+  return false;
+}
+
+async function isStranger(bot, group, id) {
+  const members = await bot.getGroupMemberList(group);
+
+  for (const [, m] of members) {
+    if (id === m.user_id) {
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -204,18 +220,8 @@ async function say(
           let gid;
 
           for (const [, g] of bot.gl) {
-            const members = await bot.getGroupMemberList(g.group_id);
-            let find = false;
-
-            for (const [, m] of members) {
-              if (id === m.user_id) {
-                gid = g.group_id;
-                find = true;
-                break;
-              }
-            }
-
-            if (true === find) {
+            if (true === (await isStranger(bot, g.group_id, id))) {
+              gid = g.group_id;
               break;
             }
           }
@@ -273,13 +279,16 @@ function boardcast(bot, msg = "", type = "group", check = () => true) {
     return;
   }
 
-  report += `${"-".repeat(20)}\n`;
-  report += `以上${typestr}正在发送以下广播，速度为 ${1000 / delay} 个${typestr}每秒。\n`;
-  report += `${"-".repeat(20)}\n`;
-  report += msg;
+  const speed = 1000 / delay;
+  const br = "-".repeat(20);
+  report +=
+    `${br}\n以上${typestr}正在发送以下广播，速度为` +
+    (speed < 1 ? `每个${typestr} ${1 / speed} 秒` : ` ${speed} 个${typestr}每秒`) +
+    `。\n${br}\n${msg}`;
+
   sayMaster(bot, undefined, report);
 
   return delay * count;
 }
 
-export { boardcast, isGroupBan, say, sayMaster, toCqcode };
+export { boardcast, isGroupBan, isStranger, say, sayMaster, toCqcode };
