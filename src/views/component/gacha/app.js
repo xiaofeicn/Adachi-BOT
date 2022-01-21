@@ -1,16 +1,21 @@
-const containerTemplate = `
-<div class="gacha-title">@{{userName}} 在 {{userDrawTime}} 抽取了 {{wishType}} 卡池 {{drawCount}} 次</div>
+const containerTemplate = `<div class="gacha-title">
+  <span class="deco-username">@{{userName}}</span>在<span class="deco-time">{{userDrawTime}}</span>抽取了<span
+    class="deco-type"
+    >{{wishType}}</span
+  >卡池<span class="deco-count">{{drawCount}}</span>次
+</div>
 <div class="container-gacha-box">
   <gachaBox v-for="pull in gachaDataToShow" :data="pull" :fives="fives" :isStat="isStatisticalData" />
 </div>
 <div class="info-footer">
   <div v-if="showEpitomizedPath" class="epitome">
-    当前<span v-if="!epitomizedPath.hasPath">没有</span>定轨 <span v-if="epitomizedPath.hasPath">{{epitomizedPath.course.name}}</span>
-    <br>
-    命定值 <span v-if="epitomizedPath.hasPath">{{epitomizedPath.fate}}</span><span v-else>0</span>/2</div>
+    当前<span v-if="!epitomizedPath.hasPath">没有</span>定轨
+    <span v-if="epitomizedPath.hasPath">{{epitomizedPath.course.name}}</span>
+    <br />
+    命定值 <span v-if="epitomizedPath.hasPath">{{epitomizedPath.fate}}</span><span v-else>0</span>/2
+  </div>
   <div class="credit">Created by Adachi-BOT</div>
-</div>
-`;
+</div>`;
 
 // eslint-disable-next-line no-undef
 const { defineComponent } = Vue;
@@ -73,7 +78,7 @@ export default defineComponent({
 
     const gachaDataToShow =
       params.data.length > 10
-        ? params.count.sort((x, y) => quickSortByRarity(x, y))
+        ? params.five.concat(params.count.sort((x, y) => quickSortByRarity(x, y)).filter((item) => item.star < 5))
         : params.data.sort((x, y) => quickSortByRarity(x, y));
 
     let epitomizedPath = params.path;

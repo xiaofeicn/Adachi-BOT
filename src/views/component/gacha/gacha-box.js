@@ -1,13 +1,11 @@
-const template = `
-<div class="gacha-box" :style="{ backgroundImage: 'url(' + item_props.item_rarity_background + ')' }" >
+const template = `<div class="gacha-box" :style="{ backgroundImage: 'url(' + item_props.item_rarity_background + ')' }">
   <img class="item-image" :src="item_props.image_url" />
   <div class="container-item-props">
     <div v-if="item_props.item_label !== ''" class="item-label">{{item_props.item_label}}</div>
     <img class="item-type-image" :src="item_props.item_type_image" />
     <img class="item-rarity-image" :src="item_props.item_rarity_image" />
   </div>
-</div>
-`;
+</div>`;
 
 // eslint-disable-next-line no-undef
 const { defineComponent } = Vue;
@@ -38,11 +36,7 @@ export default defineComponent({
     const itemTypeImage = props.data.type;
     const itemRarity = rarityMapping[props.data.star] || "Four";
     const itemLabel =
-      props.data.star === 5
-        ? "「" + props.fives.find((el) => el.item_name === imageName)["times"] + "抽」"
-        : props.isStat
-        ? "「" + props.data.count + "次」"
-        : "";
+      props.data.star === 5 ? "「" + props.data.times + "抽」" : props.isStat ? "「" + props.data.count + "次」" : "";
     const iconType = props.data.item_type === "角色" ? "element" : "type";
 
     item_props.image_url = `http://localhost:9934/resources/Version2/wish/${imageType}/${imageName}.png`;
