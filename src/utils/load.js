@@ -131,6 +131,7 @@ function doPossibleCommand(msg, plugins, type, bot) {
       }
     }
   }
+  global.bots.logger.info(pulgins_match);
   if (!pulgins_match) {
     msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
     msg.type = type;
