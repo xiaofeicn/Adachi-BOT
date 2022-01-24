@@ -1,4 +1,13 @@
-const template = `<div class="user-base-page">
+import SectionTitle from "./section-title.js";
+import ExplorationBox from "./exploration.js";
+import CharacterBox from "./character-box.js";
+import HomeBox from "./home-box.js";
+import { html } from "../common/html.js";
+import { getParams } from "../common/param.js";
+
+// eslint-disable-next-line no-undef
+const { defineComponent, computed } = Vue;
+const template = html`<div class="user-base-page">
   <div class="left">
     <div class="top" :style="{ 'background-image': 'url(' + nameCard + ')'}">
       <div class="profile">
@@ -40,7 +49,7 @@ const template = `<div class="user-base-page">
               <p>{{ stats.magic_chest_number }}</p>
             </div>
     </div>
-<<<<<<< HEAD
+
     <SectionTitle class="bottom-split" :title="homeboxTitle" />
     <div class="bottom">
       <HomeBox :data="homes.hole" />
@@ -48,7 +57,7 @@ const template = `<div class="user-base-page">
       <HomeBox :data="homes.island" />
       <HomeBox :data="homes.hall" />
     </div>
-=======
+
     <div class="container-home-box">
       <SectionTitle class="bottom-split" :title="homeboxTitle" />
       <div class="bottom">
@@ -56,8 +65,8 @@ const template = `<div class="user-base-page">
       </div>
     </div>
     <div class="quoteBox">
-        <img class="quoteImage" :src="emoticon.link" :alt="emoticon.filename" />
-        <p class="quoteText" :style="{'fontSize': emoticon.quoteFontSize}">{{emoticon.quote}}</p>
+      <img class="quoteImage" :src="emoticon.link" :alt="emoticon.filename" />
+      <p class="quoteText" :style="{'fontSize': emoticon.quoteFontSize}">{{ emoticon.quote }}</p>
     </div>
 >>>>>>> ArondightMaster
   </div>
@@ -80,23 +89,14 @@ const template = `<div class="user-base-page">
     </div>
     </div>
     <div v-if="hasPlayerNameInfo" class="container-traveler-signature">
-        <p class="signature-header">签名</p>
-        <div class="signature-underline">
-            <p class="signature-body">{{data.nickname}}</p>
-        </div>
+      <p class="signature-header">签名</p>
+      <div class="signature-underline">
+        <p class="signature-body">{{ data.nickname }}</p>
+      </div>
     </div>
     <p class="author">Created by Adachi-BOT</p>
   </div>
 </div>`;
-
-import SectionTitle from "./section-title.js";
-import ExplorationBox from "./exploration.js";
-import CharacterBox from "./character-box.js";
-import HomeBox from "./home-box.js";
-
-// eslint-disable-next-line no-undef
-const { defineComponent, computed } = Vue;
-import { getParams } from "../common/param.js";
 
 export default defineComponent({
   name: "Card8Box",
@@ -105,11 +105,6 @@ export default defineComponent({
     SectionTitle,
     HomeBox,
     ExplorationBox,
-    CharacterBox,
-<<<<<<< HEAD
-    HomeBox,
-=======
->>>>>>> ArondightMaster
   },
   setup() {
     const params = getParams(window.location.href);
@@ -182,10 +177,7 @@ export default defineComponent({
       homeboxTitle,
       hasLevelInfo,
       hasPlayerNameInfo,
-<<<<<<< HEAD
-=======
       emoticon,
->>>>>>> ArondightMaster
     };
   },
 });
