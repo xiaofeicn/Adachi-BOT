@@ -2,6 +2,8 @@ import lodash from "lodash";
 import { checkAuth } from "#utils/auth";
 import { isGroupBan, toCqcode } from "#utils/oicq";
 import { getRandomInt } from "#utils/tools";
+import {cc} from "../plugins/tools/cc";
+import {chat} from "../plugins/tools/chat";
 
 // 无需加锁
 const timestamp = {};
@@ -98,6 +100,62 @@ function doPossibleCommand(msg, plugins, type, bot) {
       }
     }
   }
+
+  msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
+  msg.type = type;
+  msg.uid = msg.user_id;
+  msg.gid = msg.group_id;
+  msg.sid = "group" === msg.type ? msg.gid : msg.uid;
+  msg.bot = bot;
+  if (msg.raw_message.startsWith("查词")) {
+    cc(msg);
+    return true;
+  } else if ("group" === msg.type) {
+    if (atMe) {
+      chat(msg);
+    }
+  } else {
+    chat(msg);
+  }
+
+}
+
+function doPossibleChat(msg, type, bot) {
+  const atMeReg = new RegExp(`^\\s*\\[CQ:at,type=.*?,qq=${bot.uin},text=.+?\\]\\s*`);
+  const atMe = lodash.chain(msg.message).filter({ type: "at" }).find({ qq: bot.uin }).value() ? true : false;
+
+  if (atMe) {
+    switch (global.config.atMe) {
+      case 0:
+        return false;
+      case 1:
+        // fall through
+      case 2:
+        if (!atMe) {
+          return false;
+        }
+    }
+
+    msg.raw_message = msg.raw_message.replace(atMeReg, "");
+  }
+  msg.raw_message = msg.raw_message.slice(thisPrefix ? thisPrefix.length : 0).trimStart();
+  msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
+  msg.type = type;
+  msg.uid = msg.user_id;
+  msg.gid = msg.group_id;
+  msg.sid = "group" === msg.type ? msg.gid : msg.uid;
+  msg.bot = bot;
+  if (msg.raw_message.startsWith("查词")) {
+    cc(msg);
+    return true;
+  } else if ("group" === msg.type) {
+    if (atMe) {
+      chat(msg);
+    }
+  } else {
+    chat(msg);
+  }
+
 }
 
 function doNoticeFriendIncrease(msg, bot) {
@@ -181,6 +239,9 @@ function dispatch(msg, plugins, event, bot) {
     // 发送上线通知
     case "system.online":
       doSystemOnline(bot);
+      break;
+    default:
+      doPossibleChat(msg, types[event], bot);
       break;
   }
 }
