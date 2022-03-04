@@ -2,8 +2,8 @@ import lodash from "lodash";
 import { checkAuth } from "#utils/auth";
 import { isGroupBan, toCqcode } from "#utils/oicq";
 import { getRandomInt } from "#utils/tools";
-import {cc} from "../plugins/tools/cc";
-import {chat} from "../plugins/tools/chat";
+import {cc} from "../plugins/tools/cc.js";
+import {chat} from "../plugins/tools/chat.js";
 
 // 无需加锁
 const timestamp = {};
