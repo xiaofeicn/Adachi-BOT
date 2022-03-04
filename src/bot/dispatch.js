@@ -138,7 +138,6 @@ function doPossibleChat(msg, type, bot) {
 
     msg.raw_message = msg.raw_message.replace(atMeReg, "");
   }
-  msg.raw_message = msg.raw_message.slice(thisPrefix ? thisPrefix.length : 0).trimStart();
   msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
   msg.type = type;
   msg.uid = msg.user_id;
