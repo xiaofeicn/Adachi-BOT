@@ -6,7 +6,7 @@ const template = html` <div class="background" :class="backgroundStyle">
   <img class="svg" :src="elementSvgSrc" v-if="itemType === 'character'" />
   <characterInfoBox v-if="itemType === 'character'" :data="params" />
   <weaponInfoBox v-if="itemType === 'weapon'" :data="params" />
-  <div class="credit">Created by Adachi-BOT</div>
+  <div class="credit">Created by 贪吃の派蒙</div>
 </div>`;
 
 const characterInfoBox = defineAsyncComponent(() => import("./characterInfoBox.js"));

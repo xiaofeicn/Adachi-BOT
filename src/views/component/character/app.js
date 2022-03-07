@@ -155,7 +155,7 @@ const template = html` <div class="background" :class="charElementType">
       </div>
     </div>
   </div>
-  <div class="credit">Created by Adachi-BOT</div>
+  <div class="credit">Created by 贪吃の派蒙</div>
 </div>`;
 
 export default defineComponent({

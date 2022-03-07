@@ -81,7 +81,7 @@ const template = html`<div class="user-base-page">
         <p class="signature-body">{{ data.nickname }}</p>
       </div>
     </div>
-    <p class="author">Created by Adachi-BOT</p>
+    <p class="author">Created by 贪吃の派蒙</p>
   </div>
 </div>`;
 

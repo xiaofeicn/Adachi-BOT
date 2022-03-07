@@ -14,7 +14,7 @@ const containerTemplate = html`<div class="gacha-title">
   </div>
   <div class="info-footer">
     <epitomeIndicator v-if="showEpitomizedPath" :data="epitomizedPath" />
-    <div class="credit">Created by Adachi-BOT</div>
+    <div class="credit">Created by 贪吃の派蒙</div>
   </div>`;
 
 const epitomeIndicator = defineAsyncComponent(() => import("./epitomeIndicator.js"));

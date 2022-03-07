@@ -15,7 +15,7 @@ const template = html`<div class="material">
       </div>
     </div>
   </div>
-  <p class="author">Created by Adachi-BOT</p>
+  <p class="author">Created by 贪吃の派蒙</p>
 </div>`;
 
 export default defineComponent({

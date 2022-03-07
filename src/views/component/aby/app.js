@@ -104,12 +104,12 @@ const template = html` <div class="container-abyss">
         <div class="missing-data-placeholder">暂无数据</div>
       </div>
     </div>
-    <p v-if="!isFullDataset" class="credit partial">Created by Adachi-BOT</p>
+    <p v-if="!isFullDataset" class="credit partial">Created by 贪吃の派蒙</p>
   </div>
   <div v-if="isFullDataset" class="container-vertical container-abyss-floors">
     <abyssFloor v-for="floor in abyssFloors" :data="floor" />
   </div>
-  <p v-if="isFullDataset" class="credit full-dataset">Created by Adachi-BOT</p>
+  <p v-if="isFullDataset" class="credit full-dataset">Created by 贪吃の派蒙p>
 </div>`;
 
 const abyssFloor = defineAsyncComponent(() => import("./abyssFloor.js"));
