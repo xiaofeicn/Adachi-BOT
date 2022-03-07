@@ -98,10 +98,10 @@ function doPossibleCommand(msg, plugins, type, bot) {
       }
     }
   }
-  doPossibleChat(msg, type, bot);
+  doPossibleChat(msg, type, bot,atMeReg);
 }
 
-function doPossibleChat(msg, type, bot) {
+function doPossibleChat(msg, type, bot,atMeReg) {
   msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
   msg.type = type;
   msg.uid = msg.user_id;
