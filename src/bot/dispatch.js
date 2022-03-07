@@ -2,8 +2,6 @@ import lodash from "lodash";
 import { checkAuth } from "#utils/auth";
 import { isGroupBan, toCqcode } from "#utils/oicq";
 import { getRandomInt } from "#utils/tools";
-import {cc} from "../plugins/tools/cc.js";
-import {chat} from "../plugins/tools/chat.js";
 
 // 无需加锁
 const timestamp = {};
@@ -100,24 +98,7 @@ function doPossibleCommand(msg, plugins, type, bot) {
       }
     }
   }
-  doPossibleChat(msg, type, bot)
-  // msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
-  // msg.type = type;
-  // msg.uid = msg.user_id;
-  // msg.gid = msg.group_id;
-  // msg.sid = "group" === msg.type ? msg.gid : msg.uid;
-  // msg.bot = bot;
-  // if (msg.raw_message.startsWith("查词")) {
-  //   cc(msg);
-  //   return true;
-  // } else if ("group" === msg.type) {
-  //   if (atMe) {
-  //     chat(msg);
-  //   }
-  // } else {
-  //   chat(msg);
-  // }
-
+  doPossibleChat(msg, type, bot);
 }
 
 function doPossibleChat(msg, type, bot) {
@@ -139,6 +120,7 @@ function doPossibleChat(msg, type, bot) {
   }
 
 }
+
 
 function doNoticeFriendIncrease(msg, bot) {
   if (global.config.friendGreetingNew) {
@@ -222,9 +204,6 @@ function dispatch(msg, plugins, event, bot) {
     case "system.online":
       doSystemOnline(bot);
       break;
-    // default:
-    //   doPossibleChat(msg, types[event], bot);
-    //   break;
   }
 }
 
