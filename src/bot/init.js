@@ -36,8 +36,14 @@ function doDBClean(name) {
 }
 
 async function lastWords() {
+  const message = "我下线了";
+
   for (const bot of global.bots) {
-    await bot.sayMaster(undefined, "我下线了。");
+    if (1 === global.config.groupHello) {
+      await bot.boardcast(message, "group");
+    }
+
+    await bot.sayMaster(undefined, message);
   }
 }
 
@@ -77,7 +83,7 @@ async function doPost() {
     await renderClose();
     await lastWords();
     syncDBJob();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     postRunning = false;
   } else {
     while (true === postRunning) {
@@ -104,10 +110,14 @@ async function init() {
   cleanDBJob();
   syncDBJob();
 
-  schedule.scheduleJob("*/5 * * * *", () => syncDBJob());
-  schedule.scheduleJob("*/5 * * * *", () => mysNewsJob());
-  schedule.scheduleJob("1 */1 * * *", () => cleanDBJob());
-  schedule.scheduleJob("0 */1 * * *", () => updateGachaJob());
+  schedule.scheduleJob("*/5 * * * *", async () => {
+    syncDBJob();
+    await mysNewsJob();
+  });
+  schedule.scheduleJob("0 */1 * * *", async () => {
+    cleanDBJob();
+    await updateGachaJob();
+  });
 }
 
 export { init };
