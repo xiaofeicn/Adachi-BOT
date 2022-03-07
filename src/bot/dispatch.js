@@ -98,11 +98,12 @@ function doPossibleCommand(msg, plugins, type, bot) {
       }
     }
   }
-  doPossibleChat(msg, type, bot,atMeReg);
+
+  msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
+  doPossibleChat(msg, type, bot,atMe);
 }
 
-function doPossibleChat(msg, type, bot,atMeReg) {
-  msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
+function doPossibleChat(msg, type, bot,atMe) {
   msg.type = type;
   msg.uid = msg.user_id;
   msg.gid = msg.group_id;
