@@ -36,7 +36,7 @@ function doDBClean(name) {
 }
 
 async function lastWords() {
-  const message = "我下线了";
+  const message = "我下线了。";
 
   for (const bot of global.bots) {
     if (1 === global.config.groupHello) {
@@ -64,13 +64,13 @@ function syncDBJob() {
 }
 
 async function mysNewsJob() {
-  if (true === (await mysNewsUpdate())) {
+  if (await mysNewsUpdate()) {
     mysNewsNotice();
   }
 }
 
 async function updateGachaJob() {
-  if (true === (await gachaUpdate())) {
+  if (await gachaUpdate()) {
     global.bots.logger.debug("卡池：内容已刷新。");
   } else {
     global.bots.logger.debug("卡池：刷新内容失败。");
