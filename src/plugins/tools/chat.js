@@ -5,7 +5,17 @@ async function chat(msg) {
     if (msg.raw_message.length < 1) {
         return msg.bot.say(msg.sid, "干嘛！", msg.type, msg.uid, true);
     }
-
+    const botCommands =global.config.botCommands.split(",")
+    var say=true;
+    for (const botCommand of botCommands){
+        if (msg.raw_message.toString().startsWith(botCommand)){
+            say=false;
+            break;
+        }
+    }
+    if (!say) {
+        return false;
+    }
     const url =
         "https://api.ownthink.com/bot?appid=f40e478ad5d244b3b286807ec5b46880" +
         "&userid=" +

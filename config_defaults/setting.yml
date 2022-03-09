@@ -127,3 +127,8 @@ viewDebug: 0
 # 是否保存图片
 # 1:保存、 0:不保存
 saveImage: 0
+
+#
+#兼容另外BOT，去掉另外BOT的命令导致此BOT认为聊天所做出应答
+#
+botCommands: mys,#mys,#uid,签到,原魔,语音,食物,活动列表,御神签,开启,关闭,绑定mys,绑定uid,每月统计,当前状态,添加,查询,签到,校验全部Cookies

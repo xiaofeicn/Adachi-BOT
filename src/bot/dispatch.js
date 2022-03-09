@@ -112,10 +112,7 @@ function doPossibleChat(msg, type, bot,atMe) {
   msg.gid = msg.group_id;
   msg.sid = "group" === msg.type ? msg.gid : msg.uid;
   msg.bot = bot;
-  if (msg.raw_message.startsWith("查词")) {
-    cc(msg);
-    return true;
-  } else if ("group" === msg.type) {
+  if ("group" === msg.type) {
     if (atMe) {
       chat(msg);
     }
