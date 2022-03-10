@@ -7,7 +7,7 @@ async function chat(msg) {
     }
     const botCommands =global.config.botCommands.split(",")
     var say=true;
-    for (const botCommand of botCommands){
+    for (const botCommand in botCommands){
         if (msg.raw_message.toString().startsWith(botCommand)){
             say=false;
             break;
