@@ -1,8 +1,7 @@
 import { gachaUpdate } from "#jobs/gacha";
+import { parse } from "#plugins/master/parse";
 import { setAuth } from "#utils/auth";
 import { hasEntrance } from "#utils/config";
-import { parse } from "./parse.js";
-import { setReplyAuth } from "./reply_auth.js";
 
 async function Plugin(msg) {
   switch (true) {
@@ -35,7 +34,7 @@ async function Plugin(msg) {
       setAuth(msg, ["menu", "prophecy", "roll", "quote"], ...parse(msg.text, "fun_auth"));
       break;
     case hasEntrance(msg.text, "master", "reply_auth"):
-      setReplyAuth(msg);
+      setAuth(msg, global.innerAuthName.reply, ...parse(msg.text, "reply_auth"));
       break;
     case hasEntrance(msg.text, "master", "mys_news_auth"):
       setAuth(msg, global.innerAuthName.mysNews, ...parse(msg.text, "mys_news_auth"));

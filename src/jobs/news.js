@@ -44,13 +44,17 @@ async function mysNewsUpdate() {
 }
 
 async function mysNewsNotice(withImg = true) {
+  function mkContent(text) {
+    return "。！？～~".split("").includes(text[text.length - 1]) ? text : `${text} ……`;
+  }
+
   if (1 !== global.config.noticeMysNews) {
     return;
   }
 
   initDB();
 
-  const cacheDir = path.resolve(global.rootdir, "data", "image", "news");
+  const cacheDir = path.resolve(global.datadir, "image", "news");
   const data = db.get("news", "data");
   const silent = {};
   const news = [];
@@ -67,7 +71,6 @@ async function mysNewsNotice(withImg = true) {
         continue;
       }
 
-      const mkContent = (c) => ("。！？～~".split("").includes(c[c.length - 1]) ? c : `${c} ……`);
       const post = n.post || {};
       const { subject, content } = post;
       const image = post.images[0];

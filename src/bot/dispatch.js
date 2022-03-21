@@ -52,11 +52,32 @@ function doPossibleCommand(msg, plugins, type, bot) {
     }
   }
 
-  if (!match) {
+  if (true === match) {
+    msg.raw_message = msg.raw_message.slice(thisPrefix ? thisPrefix.length : 0).trimStart();
+  } else {
     return false;
   }
 
-  msg.raw_message = msg.raw_message.slice(thisPrefix ? thisPrefix.length : 0).trimStart();
+  // 同步 oicq 数据结构
+  if (lodash.hasIn(msg.message, "[0].text")) {
+    msg.message = lodash.chain(msg.message).filter({ type: "text" }).slice(0, 1).value();
+    msg.message[0].text = msg.raw_message;
+  }
+
+  // 添加自定义属性
+  msg.text = msg.raw_message;
+  msg.type = type;
+  msg.uid = msg.user_id;
+  msg.gid = msg.group_id;
+  msg.sid = "group" === msg.type ? msg.gid : msg.uid;
+  msg.name = msg.sender.nickname;
+  msg.atMe = atMe;
+  msg.bot = bot;
+
+  // 不响应消息则当做一条已经指派插件的命令返回
+  if (false === checkAuth(msg, global.innerAuthName.reply, false)) {
+    return true;
+  }
 
   // 匹配插件入口
   for (const regex in regexPool) {
@@ -75,29 +96,11 @@ function doPossibleCommand(msg, plugins, type, bot) {
         return true;
       }
 
-      // 同步 oicq 数据结构
-      if (lodash.hasIn(msg.message, "[0].text")) {
-        msg.message = lodash.chain(msg.message).filter({ type: "text" }).slice(0, 1).value();
-        msg.message[0].text = msg.raw_message;
-      }
-
-      // 添加自定义属性
-      msg.text = msg.raw_message;
-      msg.type = type;
-      msg.uid = msg.user_id;
-      msg.gid = msg.group_id;
-      msg.sid = "group" === msg.type ? msg.gid : msg.uid;
-      msg.name = msg.sender.nickname;
-      msg.atMe = atMe;
-      msg.bot = bot;
-
-      if (false !== checkAuth(msg, global.innerAuthName.reply, false)) {
-        if (global.config.requestInterval < msg.time - (timestamp[msg.user_id] || (timestamp[msg.user_id] = 0))) {
-          timestamp[msg.user_id] = msg.time;
-          // 参数 bot 为了兼容可能存在的旧插件
-          plugins[plugin].run(msg, bot);
-          return true;
-        }
+      if (global.config.requestInterval < msg.time - (timestamp[msg.user_id] || (timestamp[msg.user_id] = 0))) {
+        timestamp[msg.user_id] = msg.time;
+        // 参数 bot 为了兼容可能存在的旧插件
+        plugins[plugin].run(msg, bot);
+        return true;
       }
     }
   }

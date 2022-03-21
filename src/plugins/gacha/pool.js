@@ -1,12 +1,14 @@
 import lodash from "lodash";
+import { init } from "#plugins/gacha/init";
 import db from "#utils/database";
-import { init } from "./init.js";
+
+function isPool(poolID, name) {
+  return Array.isArray(global.all.functions.options.pool[poolID])
+    ? global.all.functions.options.pool[poolID].includes(name)
+    : global.all.functions.options.pool[poolID] === name;
+}
 
 function doPool(msg, name) {
-  const isPool = (poolID, name) =>
-    Array.isArray(global.all.functions.options.pool[poolID])
-      ? global.all.functions.options.pool[poolID].includes(name)
-      : global.all.functions.options.pool[poolID] === name;
   let choice = 301;
 
   switch (true) {
