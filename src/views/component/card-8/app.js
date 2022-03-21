@@ -4,8 +4,14 @@ import { CharacterBox, ExplorationBox, HomeBox, SectionTitle } from "./cardCompo
 // eslint-disable-next-line no-undef
 const { defineComponent } = Vue;
 
-const template = html`<div class="user-base-page">
+// noinspection HtmlRequiredAltAttribute
+const template = html` <div class="user-base-page">
   <div class="left">
+    <div class="page-frame">
+      <img class="user-namecard-top" src="http://localhost:9934/resources/Version2/frames/namecard-top.svg" />
+      <div class="left-page-middle-frame" />
+      <img class="user-namecard-bottom" src="http://localhost:9934/resources/Version2/frames/namecard-top.svg" />
+    </div>
     <div class="top" :style="{ 'background-image': 'url(' + nameCard + ')'}">
       <div class="profile">
         <img class="character" :src="character" alt="ERROR" />
@@ -18,8 +24,8 @@ const template = html`<div class="user-base-page">
         </div>
       </div>
     </div>
-    <div class="container-middle">
-      <div class="middle">
+    <div class="container-stats">
+      <div class="stats">
         <p>活跃天数</p>
         <p>{{ stats.active_day_number }}</p>
         <p>获得角色</p>
@@ -81,7 +87,7 @@ const template = html`<div class="user-base-page">
         <p class="signature-body">{{ data.nickname }}</p>
       </div>
     </div>
-    <p class="author">Created by 贪吃の派蒙</p>
+    <p class="author">Created by Adachi-BOT</p>
   </div>
 </div>`;
 
