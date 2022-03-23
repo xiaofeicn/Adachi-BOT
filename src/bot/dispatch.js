@@ -1,6 +1,7 @@
 import lodash from "lodash";
 import { checkAuth } from "#utils/auth";
 import { isGroupBan, toCqcode } from "#utils/oicq";
+import { getGroupOfStranger } from "#utils/oicq";
 import { getRandomInt } from "#utils/tools";
 import {cc} from "../plugins/tools/cc.js";
 import {chat} from "../plugins/tools/chat.js";
@@ -9,8 +10,14 @@ import {chat} from "../plugins/tools/chat.js";
 // 无需加锁
 const timestamp = {};
 
-function doPossibleCommand(msg, plugins, type, bot) {
+async function doPossibleCommand(msg, plugins, type, bot) {
   if (undefined === type) {
+    return false;
+  }
+
+  msg.groupOfStranger = await getGroupOfStranger(bot, msg.user_id);
+
+  if ("private" === type && 1 !== global.config.replyStranger && undefined !== msg.groupOfStranger) {
     return false;
   }
 
@@ -92,7 +99,7 @@ function doPossibleCommand(msg, plugins, type, bot) {
         return true;
       }
 
-      if ("group" === type && true === isGroupBan(msg, type, bot)) {
+      if ("group" === type && isGroupBan(msg, type, bot)) {
         return true;
       }
 
@@ -107,6 +114,7 @@ function doPossibleCommand(msg, plugins, type, bot) {
 
   msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
   doPossibleChat(msg, type, bot,atMe);
+  return false;
 }
 
 function doPossibleChat(msg, type, bot,atMe) {
@@ -176,7 +184,7 @@ function doSystemOnline(bot) {
   }
 }
 
-function dispatch(msg, plugins, event, bot) {
+async function dispatch(msg, plugins, event, bot) {
   const types = { "message.private": "private", "message.group": "group" };
 
   if (undefined !== msg.raw_message && Array.isArray(msg.message)) {
@@ -185,7 +193,7 @@ function dispatch(msg, plugins, event, bot) {
 
   // 如果信息是命令，尝试指派插件处理命令
   if (Object.keys(types).includes(event) && lodash.find(msg.message, { type: "text" })) {
-    if (doPossibleCommand(msg, plugins, types[event], bot)) {
+    if (await doPossibleCommand(msg, plugins, types[event], bot)) {
       return;
     }
   }
