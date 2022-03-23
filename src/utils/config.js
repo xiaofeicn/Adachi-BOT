@@ -714,6 +714,7 @@ function readSetting() {
     viewDebug: 0,
     // 不保存图片
     saveImage: 0,
+    botCommands: "",
   };
 
   // 用于兼容旧配置，已经被 accounts 取代
@@ -742,6 +743,7 @@ function readSetting() {
   const dbInfoEffectTime = parseInt(mSetting.dbInfoEffectTime);
   const viewDebug = parseInt(mSetting.viewDebug);
   const saveImage = parseInt(mSetting.saveImage);
+  const botCommands = parseInt(mSetting.botCommands);
 
   (function getConfig(...items) {
     items.forEach((o) => {
@@ -774,7 +776,8 @@ function readSetting() {
     { dbAbyEffectTime },
     { dbInfoEffectTime },
     { viewDebug },
-    { saveImage }
+    { saveImage },
+      { botCommands }
   );
 
   // 以下选项不为负数

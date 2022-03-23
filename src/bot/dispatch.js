@@ -108,9 +108,27 @@ async function doPossibleCommand(msg, plugins, type, bot) {
       }
     }
   }
-
+  msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
+  doPossibleChat(msg, type, bot,atMe);
   return false;
 }
+
+function doPossibleChat(msg, type, bot,atMe) {
+  msg.type = type;
+  msg.uid = msg.user_id;
+  msg.gid = msg.group_id;
+  msg.sid = "group" === msg.type ? msg.gid : msg.uid;
+  msg.bot = bot;
+  if ("group" === msg.type) {
+    if (atMe) {
+      chat(msg);
+    }
+  } else {
+    chat(msg);
+  }
+
+}
+
 
 function doNoticeFriendIncrease(msg, bot) {
   if (global.config.friendGreetingNew) {
