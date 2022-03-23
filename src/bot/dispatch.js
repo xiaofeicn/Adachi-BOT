@@ -3,7 +3,7 @@ import { checkAuth } from "#utils/auth";
 import { isGroupBan, toCqcode } from "#utils/oicq";
 import { getGroupOfStranger } from "#utils/oicq";
 import { getRandomInt } from "#utils/tools";
-import { chat } from "#plugins/tool/chat";
+import { chat } from "#plugins/tools/chat";
 
 // 无需加锁
 const mTimestamp = {};
