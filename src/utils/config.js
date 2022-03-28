@@ -294,21 +294,9 @@
  * global.artifacts
  * --------------------------------------------------------------------------
  * {
- *   weights: [
- *     [ 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0 ],
- *     [ 0, 0, 0, 0 ]
- *   ],
- *   values: [
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   ],
+ *   weights: [ [] ],
+ *   values: [ [] ],
+ *   props: [ {} ],
  *   path: [ 4, 2, 5, 1, 3 ],
  *   artifacts: {
  *     id: { '悠古的磐岩': 0 },
@@ -329,18 +317,11 @@
  * ../../config/artifacts.yml
  * --------------------------------------------------------------------------
  * weights:
- *   - [ 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0 ]
- *   - [ 0, 0, 0, 0 ]
+ *   - [ ]
  * values:
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+ *   - [ ]
+ * props:
+ *   - { }
  * path: [ 4, 2, 5, 1, 3 ]
  * artifacts:
  *   - id: 0
@@ -893,6 +874,7 @@ function readNames() {
 
 // global.artifacts.weights          -> weights (array of array of number)
 // global.artifacts.values           -> values (array of array of number)
+// global.artifacts.props            -> props (array of object)
 // global.artifacts.artifacts.id     -> suit (lowercase):  id (number)
 // global.artifacts.artifacts.rarity -> id:                rarity (number)
 // global.artifacts.artifacts.icon   -> icon:              id (number)
@@ -957,6 +939,7 @@ function readArtifacts() {
 
   global.artifacts.weights = mArtifacts.weights;
   global.artifacts.values = mArtifacts.values;
+  global.artifacts.props = mArtifacts.props;
   global.artifacts.path = mArtifacts.path;
   global.artifacts.artifacts = {};
   global.artifacts.artifacts.id = reduce("artifacts", ["suit", "id"], [true, false]);
@@ -974,12 +957,12 @@ function readArtifacts() {
 
 // Call after readNames()
 //
-// global.info.character    -> array of { type, title, id , name, introduce, birthday, element, cv, constellationName,
-//                                        rarity, mainStat, mainValue, baseATK, passiveTitle, passiveDesc,
-//                                        ascensionMaterials, levelUpMaterials, talentMaterials, time,
-//                                        constellations }, sorted by rarity
-// global.info.weapon       -> array of { type, title, name, introduce, access, rarity, mainStat, mainValue, baseATK,
-//                                        ascensionMaterials, time, skillName, skillContent }, sorted by rarity
+// global.info.character    -> array of { access, ascensionMaterials, baseATK, birthday, constellationName,
+//                                        constellations, cv, cvCN, cvJP, element, id, introduce, levelUpMaterials,
+//                                        mainStat, mainValue, name, passiveDesc, passiveTitle, rarity,
+//                                        talentMaterials, time, title, type }, sorted by rarity
+// global.info.weapon       -> array of { access, ascensionMaterials, baseATK, introduce, mainStat, mainValue, name,
+//                                        rarity, skillContent, skillName, time, title, type }, sorted by rarity
 function readInfo() {
   const names = Object.values(global.names.allAlias);
   const dir = path.resolve(global.rootdir, "resources", "Version2", "info", "docs");
@@ -1037,9 +1020,10 @@ function readEggs() {
     global.eggs.star = {};
 
     global.info.character.concat(global.info.weapon).forEach((c) => {
-      if ("string" === typeof c.type) {
+      // 只要五星
+      if ("string" === typeof c.type && 5 === parseInt(c.rarity) && "祈愿" === c.access) {
         global.eggs.type[c.name] = c.type;
-        global.eggs.star[c.name] = parseInt(c.star) || 5;
+        global.eggs.star[c.name] = 5;
       }
     });
   }

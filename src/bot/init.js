@@ -1,4 +1,3 @@
-import express from "express";
 import schedule from "node-schedule";
 import { gachaUpdate } from "#jobs/gacha";
 import { mysNewsNotice, mysNewsTryToResetDB, mysNewsUpdate } from "#jobs/news";
@@ -79,11 +78,15 @@ async function updateGachaJob() {
 
 async function doPost() {
   if (false === mPostRunning) {
-    mPostRunning = true;
+    mPostRunning = true; // {
+
+    global.bots.logger.debug("正在结束……");
+    syncDBJob();
     await renderClose();
     await lastWords();
-    syncDBJob();
+
     await new Promise((resolve) => setTimeout(resolve, 3000));
+    // }
     mPostRunning = false;
   } else {
     while (true === mPostRunning) {
@@ -92,18 +95,11 @@ async function doPost() {
   }
 }
 
-function serve(port = 9934) {
-  const server = express();
-  server.use(express.static(global.rootdir));
-  server.listen(port, "localhost");
-}
-
 async function init() {
   for (const signal of ["SIGHUP", "SIGINT", "SIGTERM"]) {
     process.on(signal, () => doPost().then((n) => process.exit(n)));
   }
 
-  serve(9934);
   initDB();
   await initBrowser();
   await updateGachaJob();
