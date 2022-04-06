@@ -13,9 +13,9 @@ async function doPossibleCommand(msg, plugins, type, bot) {
     return false;
   }
 
-  msg.groupOfStranger = await getGroupOfStranger(bot, msg.user_id);
+  const groupOfStranger = await getGroupOfStranger(bot, msg.user_id);
 
-  if ("private" === type && 1 !== global.config.replyStranger && undefined !== msg.groupOfStranger) {
+  if ("private" === type && 1 !== global.config.replyStranger && undefined !== groupOfStranger) {
     return false;
   }
 
@@ -70,6 +70,7 @@ async function doPossibleCommand(msg, plugins, type, bot) {
   }
 
   // 添加自定义属性
+  msg.bot = bot;
   msg.text = msg.raw_message;
   msg.type = type;
   msg.uid = msg.user_id;
@@ -77,7 +78,7 @@ async function doPossibleCommand(msg, plugins, type, bot) {
   msg.sid = "group" === msg.type ? msg.gid : msg.uid;
   msg.name = msg.sender.nickname;
   msg.atMe = atMe;
-  msg.bot = bot;
+  msg.groupOfStranger = groupOfStranger;
 
   // 不响应消息则当做一条已经指派插件的命令返回
   if (false === checkAuth(msg, global.innerAuthName.reply, false)) {
