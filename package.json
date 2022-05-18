@@ -1,6 +1,6 @@
 {
   "name": "adachi-bot",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "腾讯 QQ 中的原神机器人",
   "repository": "https://github.com/Arondight/Adachi-BOT.git",
   "homepage": "https://github.com/Arondight/Adachi-BOT",
@@ -59,14 +59,14 @@
     "moment-timezone": "0.5.34",
     "node-fetch": "3.2.4",
     "node-schedule": "2.1.0",
-    "oicq": "2.2.2",
+    "oicq": "2.2.3",
     "p-limit": "4.0.0",
     "pm2": "5.2.0",
     "pretty-bytes": "6.0.0",
-    "puppeteer": "14.0.0",
+    "puppeteer": "14.1.0",
     "random-float": "3.0.0",
-    "systeminformation": "5.11.14",
-    "yargs": "17.4.1"
+    "systeminformation": "5.11.15",
+    "yargs": "17.5.1"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "3.2.0",
@@ -76,8 +76,8 @@
     "eslint-plugin-promise": "6.0.0",
     "eslint-plugin-sort-exports": "0.6.0",
     "eslint-plugin-vue": "8.7.1",
-    "eslint-plugin-yml": "0.14.0",
-    "npm-check-updates": "12.5.11",
+    "eslint-plugin-yml": "0.15.0",
+    "npm-check-updates": "13.0.0",
     "prettier": "2.6.2"
   }
 }
