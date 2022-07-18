@@ -39,7 +39,7 @@ AREAS=(
 # 所有的游戏角色。
 CHARS=(
   # 风
-  '温迪'     '琴'       '魈'       '砂糖'     '枫原万叶' '早柚'
+  '温迪'     '琴'       '魈'       '砂糖'     '枫原万叶' '早柚'     '鹿野院平藏'
   # 水
   '达达利亚' '莫娜'     '行秋'     '芭芭拉'   '珊瑚宫心海'          '神里绫人'
   '夜兰'
@@ -59,8 +59,8 @@ CHARS=(
 # 所有的游戏角色ID。
 # https://github.com/Arondight/Adachi-BOT/issues/20
 CHARIDS=(
-  # 温迪     琴         魈         砂糖       枫原万叶   早柚
-  '10000022' '10000003' '10000026' '10000043' '10000047' '10000053'
+  # 温迪     琴         魈         砂糖       枫原万叶   早柚       鹿野院平藏
+  '10000022' '10000003' '10000026' '10000043' '10000047' '10000053' '10000059'
   # 达达利亚 莫娜       行秋       芭芭拉     珊瑚宫心海            神里绫人
   '10000033' '10000041' '10000025' '10000014' '10000054'            '10000066'
   # 夜兰
@@ -323,7 +323,7 @@ function dealFile()
 
     if [[ -n "$msg" ]]
     then
-      echo -e "${msg}\t${file}"
+      echo -e "${msg}\t${file##${RDIR}/}"
     fi
 
     if [[ -n "$cmd" ]]
@@ -523,7 +523,7 @@ function syncCustom()
 
   for file in "${files[@]}"
   do
-    rpath="${file##${CUSTOM_RES}}"
+    rpath="${file##${CUSTOM_RES}/}"
     thisdir="${RDIR}/$(dirname ${rpath})"
 
     if [[ 'README.txt' == $(basename "$rpath") ]]
@@ -537,12 +537,10 @@ function syncCustom()
   done
 }
 
-function listXML()
+function cleanXML()
 {
   local files=($(find "$RDIR" -type f))
   local hasXML=0
-
-  echo 'Search and delete XML files ...'
 
   # 阿里云 OSS 请求不到的资源会返回一个 XML 文件，删除这些垃圾文件
   dealXML 'rm -f {}' 'Delete' "${files[@]}"
@@ -573,6 +571,6 @@ function listXML()
   getThumb
 
   syncCustom
-  listXML
+  cleanXML
 }
 

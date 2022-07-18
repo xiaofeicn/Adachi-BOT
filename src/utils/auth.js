@@ -1,3 +1,4 @@
+import lodash from "lodash";
 import db from "#utils/database";
 import { isGroup } from "#utils/oicq";
 
@@ -21,10 +22,16 @@ function setAuth(msg, funcs = [], id, isOn, report = true) {
   }
 
   funcs.forEach((f) => {
-    const name = global.command.functions.name[f] ? `【${global.command.functions.name[f]}】` : f;
     const data = db.get("authority", "user", { userID: id });
+    let name = global.command.functions.name[f] || f;
 
-    names.push(name);
+    if ("option" === global.all.functions.type[f] && true === global.all.functions.revert[f]) {
+      if (global.all.functions.options[f]) {
+        name = `${lodash.flatten(Object.values(global.all.functions.options[f])).join("、")}${name}`;
+      }
+    }
+
+    names.push(`【${name}】`);
 
     if (undefined === data) {
       db.push("authority", "user", { userID: id, [f]: on });
@@ -47,25 +54,34 @@ function setAuth(msg, funcs = [], id, isOn, report = true) {
 }
 
 // 返回值：
-//    true:      有权限
-//    false:     没权限
-//    undefined: 没设置权限
-function checkAuth(msg, func, report = true) {
-  const uauth = hasAuth(msg.uid, func);
-  const gauth = hasAuth(msg.sid, func);
+//    true:   有权限
+//    false:  没权限
+function checkAuth(msg, func, report = true, checkMaster = false) {
+  function getAuth() {
+    const uauth = hasAuth(msg.uid, func);
+    const gauth = hasAuth(msg.sid, func);
 
-  if (undefined === uauth && undefined === gauth) {
-    return undefined;
-  }
-
-  if (false === uauth || false === gauth) {
-    if (true === report && undefined !== msg.bot) {
-      msg.bot.say(msg.sid, `您当前无【${global.command.functions.name[func]}】权限。`, msg.type, msg.uid, true);
+    if (undefined === uauth && undefined === gauth) {
+      return true === global.authority.default[global.authority.function[func]];
     }
-    return false;
+
+    return false !== uauth && false !== gauth;
   }
 
-  return true;
+  const res = (false === checkMaster && global.config.masters.includes(msg.uid)) || getAuth();
+  let name = global.command.functions.name[func];
+
+  if (false === res && true === report && undefined !== msg.bot) {
+    if ("option" === global.all.functions.type[func] && true === global.all.functions.revert[func]) {
+      if (global.all.functions.options[func]) {
+        name = `${lodash.flatten(Object.values(global.all.functions.options[func])).join("、")}${name}`;
+      }
+    }
+
+    msg.bot.say(msg.sid, `您当前无【${name}】权限。`, msg.type, msg.uid, true);
+  }
+
+  return res;
 }
 
 export { checkAuth, setAuth };

@@ -1,28 +1,27 @@
-import { html, toReadableDate } from "../common/utils.js";
+import { html } from "../common/utils.js";
 import { characterShowbox } from "./abyssComponents.js";
 
-const { defineComponent } = window.Vue;
 const lodash = window._;
+const moment = window.moment;
+const { defineComponent, unref } = window.Vue;
 
-const unfulfilledTemplate = html`
-  <div class="container-vertical container-chamber-info">
-    <div class="banner-title abyss-chamber-title">
-      <p class="chamber-indicator">第{{data.index}}间</p>
-      <div class="chamber-stars">{{starText}}</div>
-    </div>
-
-    <div class="chamber-details unfulfilled">
-      <characterShowbox
-        v-for="avatar in avatars"
-        :htmlClass="'chamber-character'"
-        :prefix="'Lv.'"
-        :suffix="''"
-        :data="avatar"
-      />
-    </div>
+const unfulfilledTemplate = html`<div class="container-vertical container-chamber-info">
+  <div class="banner-title abyss-chamber-title">
+    <p class="chamber-indicator">第{{data.index}}间</p>
+    <div class="chamber-stars">{{starText}}</div>
   </div>
-`;
 
+  <div class="chamber-details unfulfilled">
+    <characterShowbox
+      v-for="avatar in avatars"
+      :htmlClass="'chamber-character'"
+      :prefix="'Lv.'"
+      :suffix="''"
+      :data="avatar"
+      :characterName="getCharacterName(avatar.id)"
+    />
+  </div>
+</div>`;
 const unfulfilledChamberShowbox = defineComponent({
   name: "unfulfilledChamberShowbox",
   template: unfulfilledTemplate,
@@ -31,20 +30,24 @@ const unfulfilledChamberShowbox = defineComponent({
   },
   props: {
     data: Object,
+    charactersMap: Array,
   },
   setup(props) {
+    const propsValue = unref(props);
     const avatars = lodash.compact(lodash.flatten(lodash.map(props.data.battles, "avatars")));
     const stars = props.data.star || 1;
     const starText = "*".repeat(stars);
+    const charactersMap = propsValue.charactersMap;
+    const getCharacterName = (id) => charactersMap.filter((character) => character.id === id)[0].name;
 
     return {
       avatars,
       starText,
+      getCharacterName,
     };
   },
 });
-
-const briefingTemplate = html` <div class="card container-vertical container-floor-info">
+const briefingTemplate = html`<div class="card container-vertical container-floor-info">
   <div class="container-briefing-floor-title">
     <div class="briefing-floor-indicator">第{{floorIndex}}层</div>
     <div class="briefing-floor-stars">
@@ -53,21 +56,21 @@ const briefingTemplate = html` <div class="card container-vertical container-flo
     </div>
     <div class="briefing-floor-duration">
       <div class="brief-start-time">
-        <span class="date">{{formatDate(new Date(startTime * 1000), "YY/mm/dd")}}</span>
-        <span>{{formatDate(new Date(startTime * 1000), "HH")}}</span>
+        <span class="date">{{formatDate(new Date(startTime * 1000), "YY/MM/DD")}}</span>
+        <span>{{formatDate(new Date(startTime * 1000), "hh")}}</span>
         <span class="kerning">:</span>
-        <span>{{formatDate(new Date(startTime * 1000), "MM")}}</span>
+        <span>{{formatDate(new Date(startTime * 1000), "mm")}}</span>
         <span class="kerning">:</span>
-        <span>{{formatDate(new Date(startTime * 1000), "SS")}}</span>
+        <span>{{formatDate(new Date(startTime * 1000), "ss")}}</span>
       </div>
       <div class="brief-end-time">
         -
-        <span class="date">{{formatDate(new Date(endTime * 1000), "YY/mm/dd")}}</span>
-        <span>{{formatDate(new Date(endTime * 1000), "HH")}}</span>
+        <span class="date">{{formatDate(new Date(endTime * 1000), "YY/MM/DD")}}</span>
+        <span>{{formatDate(new Date(endTime * 1000), "hh")}}</span>
         <span class="kerning">:</span>
-        <span>{{formatDate(new Date(endTime * 1000), "MM")}}</span>
+        <span>{{formatDate(new Date(endTime * 1000), "mm")}}</span>
         <span class="kerning">:</span>
-        <span>{{formatDate(new Date(endTime * 1000), "SS")}}</span>
+        <span>{{formatDate(new Date(endTime * 1000), "ss")}}</span>
       </div>
     </div>
   </div>
@@ -75,14 +78,14 @@ const briefingTemplate = html` <div class="card container-vertical container-flo
   <div class="container-revealed-briefing">
     <img
       v-for="avatar in avatars"
-      :src="avatar.icon"
+      :src="getAvatarThumbUrl(avatar.id) ? encodeURI(getAvatarThumbUrl(avatar.id)) : avatar.icon"
       class="avatar-rounded-briefing"
       :class="getRarityClass(avatar.rarity)"
-      alt="图片加载失败"
+      :alt="getAvatarName(avatar.id) ? getAvatarName(avatar.id) : 'Err'"
     />
   </div>
 
-  <unfulfilledChamberShowbox v-for="chamber in chambers" :data="chamber" />
+  <unfulfilledChamberShowbox v-for="chamber in chambers" :data="chamber" :charactersMap="charactersMap" />
 </div>`;
 
 export default defineComponent({
@@ -93,9 +96,10 @@ export default defineComponent({
   },
   props: {
     data: Object,
+    charactersMap: Array,
   },
   methods: {
-    formatDate: (date, format) => toReadableDate(date, format),
+    formatDate: (date, format) => moment(date).tz("Asia/Shanghai").format(format),
     getRarityClass: (rarity) => {
       const rarityClassMap = {
         5: "star-five",
@@ -110,16 +114,36 @@ export default defineComponent({
     const obtainedStars = floor.star || "0";
     const chambers = [];
     const timestamps = [];
+    const charactersMap = props.charactersMap || [];
     let avatars = [];
+
     for (const chamber of floor.levels) {
-      const { index, star, battles } = chamber;
+      const { index, star, battles } = chamber || {};
+
       for (const battle of battles) {
-        const { timestamp, avatars: chamberAvatars } = battle;
+        const { timestamp, avatars: chamberAvatars } = battle || {};
         timestamps.push(timestamp);
         avatars = avatars.concat(chamberAvatars);
       }
+
       if (3 !== star) {
         chambers.push({ index, star, battles });
+      }
+    }
+
+    function getAvatarThumbUrl(id) {
+      const { name } = charactersMap.filter((character) => character.id === id)[0] || {};
+
+      if ("string" === typeof name) {
+        return `/resources/Version2/thumb/character/${name}.png`;
+      }
+    }
+
+    function getAvatarName(id) {
+      const { name } = charactersMap.filter((character) => character.id === id)[0] || {};
+
+      if ("string" === typeof name) {
+        return name;
       }
     }
 
@@ -131,6 +155,8 @@ export default defineComponent({
       startTime: timestamps[0],
       endTime: timestamps[timestamps.length - 1],
       avatars: lodash.uniqBy(avatars, "id"),
+      getAvatarThumbUrl,
+      getAvatarName,
     };
   },
 });

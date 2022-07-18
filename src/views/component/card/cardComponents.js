@@ -1,7 +1,8 @@
 import { html } from "../common/utils.js";
 
-const { defineComponent } = window.Vue;
-const titleTemplate = html` <div class="container-title">
+const { defineComponent, unref } = window.Vue;
+
+const titleTemplate = html`<div class="container-title">
   <div class="title-content">
     <img
       class="arrow-left"
@@ -25,7 +26,7 @@ const SectionTitle = defineComponent({
     subtitle: [String, Boolean],
   },
 });
-const charBoxTemplate = html` <div class="character-box">
+const charBoxTemplate = html`<div class="character-box">
   <div class="container-char-headups">
     <img v-if="data.element !== 'None'" class="element" :src="element" alt="ERROR" />
     <div class="constellation" :class="data.constellationNum === 6 ? 'max-constellation' : ''">
@@ -35,14 +36,15 @@ const charBoxTemplate = html` <div class="character-box">
   <img
     v-if="hasCostume"
     class="main"
-    :src="costumePath"
+    :src="characterThumbUrl"
     :style="{ 'background-image': 'url(' + starBackground + ')' }"
+    v-costume="costumePath"
     alt="ERROR"
   />
   <img
     v-else
     class="main"
-    :src="data.icon"
+    :src="characterThumbUrl"
     :style="{ 'background-image': 'url(' + starBackground + ')' }"
     alt="ERROR"
   />
@@ -63,26 +65,35 @@ const CharacterBox = defineComponent({
   template: charBoxTemplate,
   props: {
     data: Object,
+    characterName: [String, undefined],
   },
   setup(props) {
     function getCostume(costumeName) {
       return encodeURI(`http://localhost:9934/resources/Version2/costumes/avatars/${costumeName}.png`);
     }
 
+    const propsValue = unref(props);
+    const characterName = propsValue.characterName;
     const starBackground = encodeURI(
       `http://localhost:9934/resources/Version2/thumb/stars/${props.data.rarity}-Star.png`
     );
     const element = encodeURI(`http://localhost:9934/resources/gacha/element/${props.data.element.toLowerCase()}.png`);
     const hasCostume = props.data.costumes.length !== 0;
     const costumePath = hasCostume ? getCostume(props.data.costumes[0]["name"]) : "";
-
     const weaponNameLength = props.data.weapon.name.length || 5;
     const additionalStyle = weaponNameLength > 5 ? "font-size: 9px;" : undefined;
+    const characterThumbUrl = characterName
+      ? "旅行者" !== characterName
+        ? encodeURI(`/resources/Version2/thumb/character/${characterName}.png`)
+        : props.data.icon.match(/PlayerGirl/g)
+        ? encodeURI("/resources/Version2/thumb/character/荧.png")
+        : encodeURI("/resources/Version2/thumb/character/空.png")
+      : props.data.icon;
 
-    return { starBackground, element, hasCostume, costumePath, additionalStyle };
+    return { starBackground, element, hasCostume, costumePath, additionalStyle, characterThumbUrl };
   },
 });
-const explorationBoxTemplate = html` <div class="exploration">
+const explorationBoxTemplate = html`<div class="exploration">
   <div class="exp-area">
     <div class="logo" :style="{maskImage : 'url(' + areaLogo + ')'}"></div>
     <div class="container-detailed-exploration" :style="{'grid-template-rows': getGridRowCount(data.displayData)}">
@@ -104,6 +115,15 @@ const ExplorationBox = defineComponent({
     },
   },
   setup(props) {
+    function getIconUri(rawUri) {
+      const icon_filename = rawUri.split("_").slice(-1)[0].split(".").slice(0)[0];
+      const iconUri = logo_mapping[icon_filename.toLowerCase()]
+        ? encodeURI(`http://localhost:9934/resources/Version2/area/${logo_mapping[icon_filename.toLowerCase()]}.png`)
+        : rawUri;
+
+      return iconUri;
+    }
+
     const logo_mapping = {
       mengde: "mondstadt",
       liyue: "liyue",
@@ -112,20 +132,6 @@ const ExplorationBox = defineComponent({
       enkanomiya: "enkanomiya",
       chasmsmaw: "chasm",
     };
-
-    function getIconUri(rawUri) {
-      const icon_filename = rawUri.split("_").slice(-1)[0].split(".").slice(0)[0];
-      let iconUri;
-      if (logo_mapping[icon_filename.toLowerCase()]) {
-        iconUri = encodeURI(
-          `http://localhost:9934/resources/Version2/area/${logo_mapping[icon_filename.toLowerCase()]}.png`
-        );
-      } else {
-        iconUri = rawUri;
-      }
-      return iconUri;
-    }
-
     const areaLogo = getIconUri(props.data.iconUrl);
 
     return { areaLogo };
