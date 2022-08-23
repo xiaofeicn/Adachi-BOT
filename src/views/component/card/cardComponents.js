@@ -1,4 +1,4 @@
-import { html } from "../common/utils.js";
+import { html, toReadableElem } from "../common/utils.js";
 
 const { defineComponent, unref } = window.Vue;
 
@@ -77,7 +77,9 @@ const CharacterBox = defineComponent({
     const starBackground = encodeURI(
       `http://localhost:9934/resources/Version2/thumb/stars/${props.data.rarity}-Star.png`
     );
-    const element = encodeURI(`http://localhost:9934/resources/gacha/element/${props.data.element.toLowerCase()}.png`);
+    const element = encodeURI(
+      `http://localhost:9934/resources/gacha/element/${toReadableElem(props.data.element)}.png`
+    );
     const hasCostume = props.data.costumes.length !== 0;
     const costumePath = hasCostume ? getCostume(props.data.costumes[0]["name"]) : "";
     const weaponNameLength = props.data.weapon.name.length || 5;
@@ -117,11 +119,10 @@ const ExplorationBox = defineComponent({
   setup(props) {
     function getIconUri(rawUri) {
       const icon_filename = rawUri.split("_").slice(-1)[0].split(".").slice(0)[0];
-      const iconUri = logo_mapping[icon_filename.toLowerCase()]
+
+      return logo_mapping[icon_filename.toLowerCase()]
         ? encodeURI(`http://localhost:9934/resources/Version2/area/${logo_mapping[icon_filename.toLowerCase()]}.png`)
         : rawUri;
-
-      return iconUri;
     }
 
     const logo_mapping = {

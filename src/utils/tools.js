@@ -1,5 +1,6 @@
 import levenshtein from "fastest-levenshtein";
 import fnv from "fnv-plus";
+import iconv from "iconv-lite";
 import lodash from "lodash";
 
 const mSimilarityMaxValue = 0.5;
@@ -54,6 +55,10 @@ function matchBracket(text, index, brackets = ["[", "]"]) {
   return -2;
 }
 
+function iconvConvert(text, to = "utf8", from = "binary") {
+  return iconv.decode(Buffer.from(text, from), to);
+}
+
 function randomString(length) {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const charactersLength = characters.length;
@@ -101,7 +106,7 @@ function filterWordsByRegex(text, ...rest) {
 // 英文数字空格分割，中文按字分割
 function segment(text) {
   const regex = /\b(\w|\d)+?\b/g;
-  return [].concat(text.match(regex)).concat([...(text.replace(regex, "").replace(/\s/g, "") || [])]);
+  return [...text.match(regex), ...[...(text.replace(regex, "").replace(/\s/g, "") || [])]];
 }
 
 function simhash(text) {
@@ -220,6 +225,7 @@ export {
   getWordByRegex,
   guessPossibleNames,
   hamming,
+  iconvConvert,
   isPossibleName,
   matchBracket,
   randomString,

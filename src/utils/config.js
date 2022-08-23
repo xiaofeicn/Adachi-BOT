@@ -446,6 +446,23 @@
  *
  *
  * ==========================================================================
+ * global.qa
+ * --------------------------------------------------------------------------
+ * { '问题？': { ignoreCase: false, type: 'text', reply: '答案！' } }
+ * --------------------------------------------------------------------------
+ * ../../config/qa.yml
+ * --------------------------------------------------------------------------
+ * settings:
+ *   -
+ *     match:
+ *       - 问题？
+ *     ignoreCase: false
+ *     type: text
+ *     reply: 答案！
+ * ==========================================================================
+ *
+ *
+ * ==========================================================================
  * global.info.material
  * --------------------------------------------------------------------------
  * { MonThu: [ '刻晴', '风鹰剑' ] }
@@ -489,7 +506,7 @@ global.oicqdir = global.datadir;
 global.configdir = path.resolve(global.rootdir, "config");
 global.configdefdir = path.resolve(global.rootdir, "config_defaults");
 
-global.innerAuthName = { reply: "响应消息", mysNews: "米游社新闻推送" };
+global.innerAuthName = { reply: "响应消息", mysNews: "米游社新闻推送", qa: "问答权限" };
 
 global.all = {};
 global.artifacts = {};
@@ -502,6 +519,7 @@ global.authority = {
     gacha_auth: ["gacha", "pool", "select", "select-nothing", "select-what"],
     music_auth: ["music", "music_source"],
     mys_news_auth: [global.innerAuthName.mysNews],
+    qa_auth: [global.innerAuthName.qa],
     query_gameinfo_auth: ["save", "aby", "lastaby", "card", "package", "character", "others_character"],
     rating_auth: ["rating"],
     reply_auth: [global.innerAuthName.reply],
@@ -518,7 +536,9 @@ global.menu = {};
 global.names = {};
 global.package = JSON.parse(fs.readFileSync(path.resolve(global.rootdir, "package.json")));
 global.prophecy = {};
+global.qa = {};
 
+const mQa = loadYML("qa");
 const mArtifacts = loadYML("artifacts");
 const mAuthority = loadYML("authority");
 const mCommand = loadYML("command");
@@ -776,6 +796,8 @@ function readAuthority() {
     rating_auth: "off",
     // 米游社新闻推送
     mys_news_auth: "off",
+    // 问答权限
+    qa_auth: "off",
     // 消息响应
     reply_auth: "off",
   };
@@ -970,6 +992,8 @@ function readCookies() {
         break;
     }
   }
+
+  global.cookies = global.cookies.filter((e, i) => global.cookies.indexOf(e) === i);
 }
 
 function readGreeting() {
@@ -1181,13 +1205,38 @@ function readEggs() {
     global.eggs.type = {};
     global.eggs.star = {};
 
-    global.info.character.concat(global.info.weapon).forEach((c) => {
+    [...global.info.character, ...global.info.weapon].forEach((c) => {
       // 只要五星
       if ("string" === typeof c.type && 5 === parseInt(c.rarity) && "祈愿" === c.access) {
         global.eggs.type[c.name] = c.type;
         global.eggs.star[c.name] = 5;
       }
     });
+  }
+}
+
+// global.qa:   regex -> settings (object)
+function readQa() {
+  if (Array.isArray(mQa?.settings)) {
+    Object.assign(
+      global.qa,
+      lodash
+        .chain(mQa.settings)
+        .filter(
+          (c) =>
+            Array.isArray(c?.match) &&
+            c?.match?.length > 0 &&
+            "string" === typeof c?.reply &&
+            "" !== c?.reply &&
+            ["text", "image", "executable", "command"].includes(c?.type)
+        )
+        .map((c) => Object.assign(c, { ignoreCase: !!c.ignoreCase }))
+        .reduce((p, v) => {
+          v.match.forEach((c) => (p[c] = lodash.omit(v, "match")));
+          return p;
+        }, {})
+        .value()
+    );
   }
 }
 
@@ -1213,7 +1262,7 @@ function readMaterial() {
     .each((k) => (global.material[k] = []))
     .value();
 
-  global.info.character.concat(global.info.weapon).forEach((c) =>
+  [...global.info.character, ...global.info.weapon].forEach((c) =>
     Object.keys(keyFromZhou).forEach((zhou) => {
       if (undefined !== c.time && "string" === typeof c.time && c.time.includes(zhou)) {
         keyFromZhou[zhou].forEach((k) => global.material[k].push(c.name.toString().toLowerCase()));
@@ -1270,6 +1319,7 @@ function readConfig() {
   readArtifacts();
   readInfo();
   readEggs();
+  readQa();
   readMaterial();
   readCommand();
   getAll();
