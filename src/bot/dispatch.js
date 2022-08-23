@@ -9,6 +9,7 @@ import { iconvConvert } from "#utils/tools";
 import { getRandomInt } from "#utils/tools";
 import { chat } from "#plugins/tools/chat";
 
+
 // 无需加锁
 const mTimestamp = {};
 
@@ -108,7 +109,7 @@ async function doPossibleCommand(msg, plugins, type, bot) {
       case 0:
         return false;
       case 1:
-      // fall through
+        // fall through
       case 2:
         if (!atMe) {
           return false;
@@ -158,46 +159,16 @@ async function doPossibleCommand(msg, plugins, type, bot) {
   msg.groupOfStranger = groupOfStranger;
 
   // 不响应消息则当做一条已经指派插件的命令返回
+  msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
+  doPossibleChat(msg, type, bot,atMe);
   if (false === checkAuth(msg, global.innerAuthName.reply, false)) {
     return true;
   }
 
-
-  // 匹配插件入口
-  for (const regex in regexPool) {
-    const r = new RegExp(regex, "i");
-    const plugin = regexPool[regex];
-
-    if (enableList[plugin] && r.test(msg.raw_message)) {
-      // 只允许管理者执行主人命令
-      if (global.master.enable[plugin] && !global.config.masters.includes(msg.user_id)) {
-        const id = "group" === type ? msg.group_id : msg.user_id;
-        bot.say(id, "不能使用管理命令。", type, msg.user_id);
-        return true;
-      }
-
-      if ("group" === type && isGroupBan(msg, type, bot)) {
-        return true;
-      }
-
-      if (global.config.requestInterval < msg.time - (mTimestamp[msg.user_id] || (mTimestamp[msg.user_id] = 0))) {
-        mTimestamp[msg.user_id] = msg.time;
-        // 参数 bot 为了兼容可能存在的旧插件
-        plugins[plugin].run(msg, bot);
-        return true;
-      }
-    }
-  }
-  msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
-  doPossibleChat(msg, type, bot,atMe);
-  return false;
-
   doQa(msg);
 
   return doPlugin(msg);
-
 }
-
 function doPossibleChat(msg, type, bot,atMe) {
   msg.type = type;
   msg.uid = msg.user_id;
@@ -213,7 +184,6 @@ function doPossibleChat(msg, type, bot,atMe) {
   }
 
 }
-
 
 function doNoticeFriendIncrease(msg, bot) {
   if (global.config.friendGreetingNew) {
@@ -250,8 +220,8 @@ function doSystemOnline(bot) {
   if (1 === global.config.groupHello) {
     bot.gl.forEach((group) => {
       const greeting = checkAuth({ sid: group.group_id }, global.innerAuthName.reply, false)
-        ? global.greeting.online
-        : global.greeting.die;
+          ? global.greeting.online
+          : global.greeting.die;
 
       if ("string" === typeof greeting) {
         // 群通知不需要 @
@@ -277,19 +247,19 @@ async function dispatch(msg, plugins, event, bot) {
 
   // 如果信息不是命令
   switch (event) {
-    // 好友增加，尝试向新朋友问好
+      // 好友增加，尝试向新朋友问好
     case "notice.friend.increase":
       doNoticeFriendIncrease(msg, bot);
       break;
-    // 新成员入群，尝试向新成员或者全群问好
+      // 新成员入群，尝试向新成员或者全群问好
     case "notice.group.increase":
       doNoticeGroupIncrease(msg, bot);
       break;
-    // 随机复读群消息
+      // 随机复读群消息
     case "message.group":
       doMessageGroup(msg, bot);
       break;
-    // 发送上线通知
+      // 发送上线通知
     case "system.online":
       doSystemOnline(bot);
       break;
