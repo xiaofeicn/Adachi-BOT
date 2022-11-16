@@ -5,15 +5,21 @@ import { getCache } from "#utils/cache";
 import { render } from "#utils/render";
 import { getWordByRegex } from "#utils/tools";
 
-// 如果注释中的链接失效，尝试在米游社中搜索用户“好多梨”。
-const mUrls = {
+("use strict");
+
+// 观测枢最底部“索引分类”中“WIKI索引”，点击“角色天赋材料周常表”和“武器突破材料周常表”
+// https://bbs.mihoyo.com/ys/strategy/
+const m_URL = Object.freeze({
+  // 角色天赋
   // https://bbs.mihoyo.com/ys/obc/content/1226/detail
-  talent: getUrl("/2022/07/12/75833613/dfa899ac62e854a2b3fcde3cf290d67e_4384913260559512486.png"),
+  talent: getUrl("/2022/11/02/75833613/33abe74e7d9a726317c8e35f1ea16d6b_5405833439823368117.png"),
+  // 武器素材
   // https://bbs.mihoyo.com/ys/obc/content/1187/detail
-  weapon: getUrl("/2022/07/12/75833613/cf8caacae5cfe095a760d5065d5ed39e_813310935669478403.png"),
+  weapon: getUrl("/2022/11/02/75833613/bdb0f92e4a5ba578c19db1dc04dc24d2_1956175768159653123.png"),
+  // 周本掉落
   // https://bbs.mihoyo.com/ys/obc/content/1226/detail
-  weekly: getUrl("/2022/07/12/75833613/d252cbb87d69a2f5f679d38f81c2e9f6_8220318949914596754.png"),
-};
+  weekly: getUrl("/2022/11/02/75833613/54ce710a06f4b6adf2a7543beb020b75_7892771804697073162.png"),
+});
 
 function getUrl(p) {
   return `https://uploadstatic.mihoyo.com/ys-obc/${"/" === p[0] ? p.substring(1) : p}`;
@@ -22,7 +28,7 @@ function getUrl(p) {
 async function doMaterial(msg, url) {
   const cacheDir = path.resolve(global.datadir, "image", "material");
 
-  if ([mUrls.talent, mUrls.weapon, mUrls.weekly].includes(url)) {
+  if ([m_URL.talent, m_URL.weapon, m_URL.weekly].includes(url)) {
     const data = await getCache(url, cacheDir, "base64");
     const text = `[CQ:image,type=image,file=base64://${data}]`;
     msg.bot.say(msg.sid, text, msg.type, msg.uid);
@@ -113,4 +119,4 @@ async function doMaterial(msg, url) {
   render(msg, { day, character, weapon }, "genshin-material");
 }
 
-export { doMaterial, mUrls as urls };
+export { doMaterial, m_URL as url };

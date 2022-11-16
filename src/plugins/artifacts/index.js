@@ -7,12 +7,14 @@ import { checkAuth } from "#utils/auth";
 import { hasEntrance } from "#utils/config";
 import { guessPossibleNames } from "#utils/tools";
 
+("use strict");
+
 async function Plugin(msg) {
   const text = getText(msg);
   const guess = guessPossibleNames(
     text,
     lodash
-      .chain(Object.assign({}, global.artifacts.domains.alias, global.artifacts.domains.name))
+      .chain({ ...global.artifacts.domains.alias, ...global.artifacts.domains.name })
       .toPairs()
       .flatten()
       .uniq()

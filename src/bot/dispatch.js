@@ -1,6 +1,7 @@
 import { exec } from "child_process";
 import lodash from "lodash";
 import os from "os";
+import { platform } from "process";
 import { checkAuth } from "#utils/auth";
 import { absPath, base64 } from "#utils/file";
 import { isGroupBan, toCqcode } from "#utils/oicq";
@@ -9,6 +10,8 @@ import { iconvConvert } from "#utils/tools";
 import { getRandomInt } from "#utils/tools";
 import { chat } from "#plugins/tools/chat";
 
+
+("use strict");
 
 // 无需加锁
 const mTimestamp = {};
@@ -20,21 +23,41 @@ async function doPossibleCommand(msg, plugins, type, bot) {
     }
 
     for (const [regex, option] of Object.entries(global.qa)) {
-      const r = new RegExp(regex, true === option.ignoreCase ? "i" : undefined);
-      const id = "group" === type ? msg.group_id : msg.user_id;
+      let flag = "m";
+
+      if (true === option.ignoreCase) {
+        flag = `${flag}i`;
+      }
+
+      const r = new RegExp(regex, flag);
+      const id = "group" === type ? msg.gid : msg.uid;
 
       if (r.test(msg.raw_message)) {
+        if (true === option.master && !global.config.masters.includes(msg.user_id)) {
+          bot.say(msg.sid, "此问答功能仅供管理者使用。", type, msg.uid);
+          break;
+        }
+
+        const osMatch =
+          undefined === option.platform ||
+          null === option.platform ||
+          (Array.isArray(option.platform) && option.platform.includes(platform));
+
+        if (false === osMatch) {
+          break;
+        }
+
         let cmd;
 
         switch (option.type) {
           case "text":
-            bot.say(id, option.reply, type, msg.user_id);
+            bot.say(id, option.reply, type, msg.uid);
             break;
           case "image": {
             const image = absPath(option.reply, global.configdefdir);
             const imageCQ = `[CQ:image,type=image,file=base64://${base64(image)}]`;
 
-            bot.say(id, imageCQ, type, msg.user_id);
+            bot.say(id, imageCQ, type, msg.uid);
             break;
           }
           case "executable":
@@ -47,9 +70,11 @@ async function doPossibleCommand(msg, plugins, type, bot) {
 
         if ("string" === typeof cmd) {
           const encoding = os.type().includes("Windows") ? "cp936" : "utf8";
+          const command = iconvConvert(cmd, encoding, "utf8");
+          const options = { encoding: "binary", env: { USER_ID: msg.uid, USER_NAME: msg.name, MSG_TEXT: msg.text } };
 
-          exec(iconvConvert(cmd, encoding, "utf8"), { encoding: "binary" }, (err, stdout, stderr) => {
-            bot.say(id, iconvConvert(null === err ? stdout : stderr, encoding), type, msg.user_id);
+          exec(command, options, (err, stdout, stderr) => {
+            bot.say(id, iconvConvert(null === err ? stdout : stderr, encoding), type, msg.uid);
           });
         }
 
@@ -63,13 +88,13 @@ async function doPossibleCommand(msg, plugins, type, bot) {
     const enableList = { ...global.command.enable, ...global.master.enable };
 
     for (const regex in regexPool) {
-      const r = new RegExp(regex, "i");
+      const r = new RegExp(regex, "mi");
       const plugin = regexPool[regex];
 
       if (enableList[plugin] && r.test(msg.raw_message)) {
         // 只允许管理者执行主人命令
-        if (global.master.enable[plugin] && !global.config.masters.includes(msg.user_id)) {
-          bot.say("group" === type ? msg.group_id : msg.user_id, "不能使用管理命令。", type, msg.user_id);
+        if (global.master.enable[plugin] && !global.config.masters.includes(msg.uid)) {
+          bot.say(msg.sid, "不能使用管理命令。", type, msg.uid);
           return true;
         }
 
@@ -77,8 +102,8 @@ async function doPossibleCommand(msg, plugins, type, bot) {
           return true;
         }
 
-        if (global.config.requestInterval < msg.time - (mTimestamp[msg.user_id] || (mTimestamp[msg.user_id] = 0))) {
-          mTimestamp[msg.user_id] = msg.time;
+        if (global.config.requestInterval < msg.time - (mTimestamp[msg.uid] || (mTimestamp[msg.uid] = 0))) {
+          mTimestamp[msg.uid] = msg.time;
           // 参数 bot 为了兼容可能存在的旧插件
           plugins[plugin].run(msg, bot);
           return true;
@@ -101,7 +126,7 @@ async function doPossibleCommand(msg, plugins, type, bot) {
 
   // 处理 @ 机器人
   // [CQ:at,type=at,qq=123456789,text=@昵称]
-  const atMeReg = new RegExp(`^\\s*\\[CQ:at,type=.*?,qq=${bot.uin},text=.+?]\\s*`);
+  const atMeReg = new RegExp(`^\\s*\\[CQ:at,type=.*?,qq=${bot.uin},text=.+?]\\s*`, "m");
   const atMe = !!lodash.chain(msg.message).filter({ type: "at" }).find({ qq: bot.uin }).value();
 
   if (atMe) {

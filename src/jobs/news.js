@@ -5,6 +5,8 @@ import { checkAuth } from "#utils/auth";
 import { getCache } from "#utils/cache";
 import db from "#utils/database";
 
+("use strict");
+
 function initDB() {
   for (const t of global.config.mysNewsTypeAll) {
     if (!db.includes("news", "timestamp", { type: t })) {
@@ -28,7 +30,7 @@ async function mysNewsUpdate() {
 
   initDB();
 
-  const ids = Object.assign({}, ...global.config.mysNewsTypeAll.map((c, i) => ({ [c]: i + 1 })));
+  const ids = { ...global.config.mysNewsTypeAll.map((c, i) => ({ [c]: i + 1 })) };
   const record = {};
 
   for (const t of Object.keys(ids)) {
@@ -97,6 +99,15 @@ async function mysNewsNotice(withImg = true) {
   }
 
   for (const n of news.sort((a, b) => a.stamp - b.stamp)) {
+    if (global.config.noticeMysNewsWithinHours > 0) {
+      const now = Date.now();
+      const nHours = global.config.noticeMysNewsWithinHours * 60 * 60;
+
+      if (now - nHours > n.stamp) {
+        continue;
+      }
+    }
+
     let image64;
 
     if (true === withImg && "string" === typeof n[1] && "" !== n[1]) {

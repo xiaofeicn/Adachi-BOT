@@ -4,6 +4,8 @@ import { mysNewsNotice, mysNewsTryToResetDB, mysNewsUpdate } from "#jobs/news";
 import db from "#utils/database";
 import { renderClose, renderOpen, renderPath } from "#utils/render";
 
+("use strict");
+
 let mPostRunning = false;
 
 function initDB() {
@@ -30,7 +32,7 @@ async function initBrowser() {
 
 function doDBClean(name) {
   let nums = db.clean(name);
-  global.bots.logger.debug(`清理：删除数据库 ${name} 中 ${nums} 条无用记录。`);
+  global.bots.logger.debug(`清理：删除数据库 ${name} 中 ${nums} 条记录。`);
   return nums;
 }
 

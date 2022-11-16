@@ -10,6 +10,18 @@
  * ==========================================================================
  *
  * ==========================================================================
+ * configdir
+ * --------------------------------------------------------------------------
+ * '/path/to/Adachi-BOT/config'
+ * ==========================================================================
+ *
+ * ==========================================================================
+ * configdefdir
+ * --------------------------------------------------------------------------
+ * '/path/to/Adachi-BOT/config_defaults'
+ * ==========================================================================
+ *
+ * ==========================================================================
  * datadir
  * --------------------------------------------------------------------------
  * '/path/to/Adachi-BOT/data'
@@ -22,15 +34,9 @@
  * ==========================================================================
  *
  * ==========================================================================
- * configdir
+ * resdir
  * --------------------------------------------------------------------------
- * '/path/to/Adachi-BOT/config'
- * ==========================================================================
- *
- * ==========================================================================
- * configdefdir
- * --------------------------------------------------------------------------
- * '/path/to/Adachi-BOT/config_defaults'
+ * '/path/to/Adachi-BOT/resources'
  * ==========================================================================
  *
  * ==========================================================================
@@ -218,6 +224,7 @@
  *   groupGreetingNew: 1,
  *   friendGreetingNew: 1,
  *   noticeMysNews: 1,
+ *   noticeMysNewsWithinHours: 24,
  *   mysNewsType: [],
  *   characterTryGetDetail: 1,
  *   requestInterval: 0,
@@ -247,6 +254,7 @@
  * groupGreetingNew: 1
  * friendGreetingNew: 1
  * noticeMysNews: 1
+ * noticeMysNewsWithinHours: 24,
  * mysNewsType: []
  * characterTryGetDetail: 1
  * requestInterval: 0
@@ -480,8 +488,8 @@
  * --------------------------------------------------------------------------
  * 数组中元素的数据结构与原文件一致，以字段 rarity 降序。
  * --------------------------------------------------------------------------
- * ../../resources/Version2/info/docs/<角色名>.json
- * ../../resources/Version2/info/docs/<武器名>.json
+ * ../../resources/info/doc/<角色名>.json
+ * ../../resources/info/doc/<武器名>.json
  * --------------------------------------------------------------------------
  * 请直接查看文件内容。
  * ==========================================================================
@@ -497,16 +505,20 @@ import url from "url";
 import { ls } from "#utils/file";
 import { loadYML } from "#utils/yaml";
 
+("use strict");
+
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-global.rootdir = path.resolve(__dirname, "..", "..");
-global.datadir = path.resolve(global.rootdir, "data");
-global.oicqdir = global.datadir;
-global.configdir = path.resolve(global.rootdir, "config");
-global.configdefdir = path.resolve(global.rootdir, "config_defaults");
+global.rootdir = Object.freeze(path.resolve(__dirname, "..", ".."));
 
-global.innerAuthName = { reply: "响应消息", mysNews: "米游社新闻推送", qa: "问答权限" };
+global.configdefdir = Object.freeze(path.resolve(global.rootdir, "config_defaults"));
+global.configdir = Object.freeze(path.resolve(global.rootdir, "config"));
+global.datadir = Object.freeze(path.resolve(global.rootdir, "data"));
+global.oicqdir = global.datadir;
+global.resdir = Object.freeze(path.resolve(global.rootdir, "resources"));
+
+global.innerAuthName = Object.freeze({ reply: "响应消息", mysNews: "米游社新闻推送", qa: "问答权限" });
 
 global.all = {};
 global.artifacts = {};
@@ -534,22 +546,22 @@ global.info = {};
 global.master = {};
 global.menu = {};
 global.names = {};
-global.package = JSON.parse(fs.readFileSync(path.resolve(global.rootdir, "package.json")));
+global.package = Object.freeze(JSON.parse(fs.readFileSync(path.resolve(global.rootdir, "package.json"))));
 global.prophecy = {};
 global.qa = {};
 
-const mQa = loadYML("qa");
-const mArtifacts = loadYML("artifacts");
-const mAuthority = loadYML("authority");
-const mCommand = loadYML("command");
-const mCookies = loadYML("cookies");
-const mEggs = loadYML("pool_eggs");
-const mGreeting = loadYML("greeting");
-const mMaster = loadYML("command_master");
-const mMenu = loadYML("menu");
-const mNames = loadYML("names");
-const mProphecy = loadYML("prophecy");
-const mSetting = loadYML("setting");
+const m_QA = Object.freeze(loadYML("qa"));
+const m_ARTIFACTS = Object.freeze(loadYML("artifacts"));
+const m_AUTHORITY = Object.freeze(loadYML("authority"));
+const m_COMMAND = Object.freeze(loadYML("command"));
+const m_COOKIES = Object.freeze(loadYML("cookies"));
+const m_EGGS = Object.freeze(loadYML("pool_eggs"));
+const m_GREETING = Object.freeze(loadYML("greeting"));
+const m_MASTER = Object.freeze(loadYML("command_master"));
+const m_MENU = Object.freeze(loadYML("menu"));
+const m_NAMES = Object.freeze(loadYML("names"));
+const m_PROPHECY = Object.freeze(loadYML("prophecy"));
+const m_SETTING = Object.freeze(loadYML("setting"));
 
 // global[type].enable                -> plugin (lowercase):    is_enabled (boolean)
 // global[type].weights               -> plugin (lowercase):    weights (number)
@@ -801,7 +813,7 @@ function readAuthority() {
     // 消息响应
     reply_auth: "off",
   };
-  const defaultAuth = Object.assign({}, defaultConfig, mAuthority.default || {});
+  const defaultAuth = { ...defaultConfig, ...(m_AUTHORITY.default || {}) };
 
   // 转换为 boolean
   Object.keys(defaultAuth).forEach((k) => {
@@ -842,6 +854,8 @@ function readSetting() {
     friendGreetingNew: 0,
     // 不推送米游社新闻
     noticeMysNews: 0,
+    // 推送不限时间的米游社新闻
+    noticeMysNewsWithinHours: 0,
     // 无米游社新闻推送类型
     mysNewsType: [],
     // 角色查询不尝试拉取数据
@@ -870,33 +884,59 @@ function readSetting() {
   };
 
   // 用于兼容旧配置，已经被 accounts 取代
-  const account = mSetting.account;
-  const accounts = mSetting.accounts;
+  const account = m_SETTING.account;
+  const accounts = m_SETTING.accounts;
   // 用于兼容旧配置，已经被 masters 取代
-  const master = mSetting.master;
-  const masters = mSetting.masters;
-  const prefixes = mSetting.prefixes;
-  const atMe = parseInt(mSetting.atMe);
-  const atUser = parseInt(mSetting.atUser);
-  const replyStranger = parseInt(mSetting.replyStranger);
-  const repeatProb = parseInt(parseFloat(mSetting.repeatProb) * 100);
-  const groupHello = parseInt(mSetting.groupHello);
-  const groupGreetingNew = parseInt(mSetting.groupGreetingNew);
-  const friendGreetingNew = parseInt(mSetting.friendGreetingNew);
-  const noticeMysNews = parseInt(mSetting.noticeMysNews);
-  const mysNewsType = Array.isArray(mSetting.mysNewsType) ? mSetting.mysNewsType : [];
-  const characterTryGetDetail = parseInt(mSetting.characterTryGetDetail);
-  const warnTimeCosts = parseInt(mSetting.warnTimeCosts);
-  const requestInterval = parseInt(mSetting.requestInterval);
-  const deleteGroupMsgTime = parseInt(mSetting.deleteGroupMsgTime);
-  const boardcastDelay = parseInt(parseFloat(mSetting.boardcastDelay) * 1000);
-  const cacheAbyEffectTime = parseInt(mSetting.cacheAbyEffectTime);
-  const cacheInfoEffectTime = parseInt(mSetting.cacheInfoEffectTime);
-  const dbAbyEffectTime = parseInt(mSetting.dbAbyEffectTime);
-  const dbInfoEffectTime = parseInt(mSetting.dbInfoEffectTime);
-  const viewDebug = parseInt(mSetting.viewDebug);
-  const saveImage = parseInt(mSetting.saveImage);
-  const botCommands = parseInt(mSetting.botCommands);
+  // const master = mSetting.master;
+  // const masters = mSetting.masters;
+  // const prefixes = mSetting.prefixes;
+  // const atMe = parseInt(mSetting.atMe);
+  // const atUser = parseInt(mSetting.atUser);
+  // const replyStranger = parseInt(mSetting.replyStranger);
+  // const repeatProb = parseInt(parseFloat(mSetting.repeatProb) * 100);
+  // const groupHello = parseInt(mSetting.groupHello);
+  // const groupGreetingNew = parseInt(mSetting.groupGreetingNew);
+  // const friendGreetingNew = parseInt(mSetting.friendGreetingNew);
+  // const noticeMysNews = parseInt(mSetting.noticeMysNews);
+  // const mysNewsType = Array.isArray(mSetting.mysNewsType) ? mSetting.mysNewsType : [];
+  // const characterTryGetDetail = parseInt(mSetting.characterTryGetDetail);
+  // const warnTimeCosts = parseInt(mSetting.warnTimeCosts);
+  // const requestInterval = parseInt(mSetting.requestInterval);
+  // const deleteGroupMsgTime = parseInt(mSetting.deleteGroupMsgTime);
+  // const boardcastDelay = parseInt(parseFloat(mSetting.boardcastDelay) * 1000);
+  // const cacheAbyEffectTime = parseInt(mSetting.cacheAbyEffectTime);
+  // const cacheInfoEffectTime = parseInt(mSetting.cacheInfoEffectTime);
+  // const dbAbyEffectTime = parseInt(mSetting.dbAbyEffectTime);
+  // const dbInfoEffectTime = parseInt(mSetting.dbInfoEffectTime);
+  // const viewDebug = parseInt(mSetting.viewDebug);
+  // const saveImage = parseInt(mSetting.saveImage);
+  // const botCommands = parseInt(mSetting.botCommands);
+
+  const master = m_SETTING.master;
+  const masters = m_SETTING.masters;
+  const prefixes = m_SETTING.prefixes;
+  const atMe = parseInt(m_SETTING.atMe);
+  const atUser = parseInt(m_SETTING.atUser);
+  const replyStranger = parseInt(m_SETTING.replyStranger);
+  const repeatProb = parseInt(parseFloat(m_SETTING.repeatProb) * 100);
+  const groupHello = parseInt(m_SETTING.groupHello);
+  const groupGreetingNew = parseInt(m_SETTING.groupGreetingNew);
+  const friendGreetingNew = parseInt(m_SETTING.friendGreetingNew);
+  const noticeMysNews = parseInt(m_SETTING.noticeMysNews);
+  const noticeMysNewsWithinHours = parseInt(m_SETTING.noticeMysNewsWithinHours);
+  const mysNewsType = Array.isArray(m_SETTING.mysNewsType) ? m_SETTING.mysNewsType : [];
+  const characterTryGetDetail = parseInt(m_SETTING.characterTryGetDetail);
+  const warnTimeCosts = parseInt(m_SETTING.warnTimeCosts);
+  const requestInterval = parseInt(m_SETTING.requestInterval);
+  const deleteGroupMsgTime = parseInt(m_SETTING.deleteGroupMsgTime);
+  const boardcastDelay = parseInt(parseFloat(m_SETTING.boardcastDelay) * 1000);
+  const cacheAbyEffectTime = parseInt(m_SETTING.cacheAbyEffectTime);
+  const cacheInfoEffectTime = parseInt(m_SETTING.cacheInfoEffectTime);
+  const dbAbyEffectTime = parseInt(m_SETTING.dbAbyEffectTime);
+  const dbInfoEffectTime = parseInt(m_SETTING.dbInfoEffectTime);
+  const viewDebug = parseInt(m_SETTING.viewDebug);
+  const saveImage = parseInt(m_SETTING.saveImage);
+
 
   (function getConfig(...items) {
     items.forEach((o) => {
@@ -924,6 +964,7 @@ function readSetting() {
     { groupGreetingNew },
     { friendGreetingNew },
     { noticeMysNews },
+    { noticeMysNewsWithinHours },
     { mysNewsType },
     { characterTryGetDetail },
     { warnTimeCosts },
@@ -982,13 +1023,13 @@ function readSetting() {
 
 // global.cookies:              ->  array of cookie (string)
 function readCookies() {
-  if (lodash.hasIn(mCookies, "cookies")) {
+  if (lodash.hasIn(m_COOKIES, "cookies")) {
     switch (true) {
-      case Array.isArray(mCookies.cookies):
-        global.cookies = mCookies.cookies;
+      case Array.isArray(m_COOKIES.cookies):
+        global.cookies = m_COOKIES.cookies;
         break;
-      case "string" === typeof mCookies.cookies:
-        global.cookies = [mCookies.cookies];
+      case "string" === typeof m_COOKIES.cookies:
+        global.cookies = [m_COOKIES.cookies];
         break;
     }
   }
@@ -1005,7 +1046,7 @@ function readGreeting() {
       hello: "大家好。",
       new: "你好。",
     },
-    mGreeting
+    m_GREETING
   );
 }
 
@@ -1015,15 +1056,15 @@ function readMenu() {
   }
 
   global.menu = {};
-  global.menu.eat = mMenu.eat || {};
-  global.menu.drink = mMenu.drink || {};
+  global.menu.eat = m_MENU.eat || {};
+  global.menu.drink = m_MENU.drink || {};
 
   parse(global.menu.eat);
   parse(global.menu.drink);
 }
 
 function readProphecy() {
-  global.prophecy = mProphecy;
+  global.prophecy = { ...m_PROPHECY };
   global.prophecy.data = Array.isArray(global.prophecy.data) ? global.prophecy.data : [];
 }
 
@@ -1035,8 +1076,12 @@ function readProphecy() {
 // global.names.allAlias        ->  name (lowercase): alias (string, lowercase)
 function readNames() {
   function getSection(s) {
+    function getExtra(o) {
+      return lodash.merge(...o.map((c) => ({ [c.name]: [] })));
+    }
+
     return lodash.reduce(
-      mNames[s] || {},
+      { ...getExtra(global.info[s]), ...(m_NAMES[s] || {}) },
       (p, v, k) => {
         (v || (v = [])).push(k);
         v.forEach((c) => (p["string" === typeof c ? c.toLowerCase() : c] = k));
@@ -1052,7 +1097,7 @@ function readNames() {
 
   global.names.characterAlias = getSection("character");
   global.names.weaponAlias = getSection("weapon");
-  global.names.allAlias = Object.assign({}, global.names.characterAlias, global.names.weaponAlias);
+  global.names.allAlias = { ...global.names.characterAlias, ...global.names.weaponAlias };
   global.names.character = getNames(global.names.characterAlias);
   global.names.weapon = getNames(global.names.weaponAlias);
   global.names.all = getNames(global.names.allAlias);
@@ -1075,7 +1120,7 @@ function readArtifacts() {
   function reduce(prop, key = [undefined, undefined], lowercase = [false, false]) {
     if (!key.includes(undefined)) {
       return lodash.reduce(
-        mArtifacts[prop] || [],
+        m_ARTIFACTS[prop] || [],
         (p, v) => {
           let p1 = v[key[0]];
           let p2 = v[key[1]];
@@ -1098,7 +1143,7 @@ function readArtifacts() {
   function deepReduce(prop, key = [undefined, undefined], lowercase = [false, false]) {
     if (!key.includes(undefined)) {
       return lodash.reduce(
-        mArtifacts[prop] || [],
+        m_ARTIFACTS[prop] || [],
         (p, v) => {
           (v[key[0]] || []).forEach((c) => {
             (Array.isArray(c) ? c : [c]).forEach((c) => {
@@ -1123,10 +1168,10 @@ function readArtifacts() {
     }
   }
 
-  global.artifacts.weights = mArtifacts.weights;
-  global.artifacts.values = mArtifacts.values;
-  global.artifacts.props = mArtifacts.props;
-  global.artifacts.path = mArtifacts.path;
+  global.artifacts.weights = m_ARTIFACTS.weights;
+  global.artifacts.values = m_ARTIFACTS.values;
+  global.artifacts.props = m_ARTIFACTS.props;
+  global.artifacts.path = m_ARTIFACTS.path;
   global.artifacts.artifacts = {};
   global.artifacts.artifacts.id = reduce("artifacts", ["suit", "id"], [true, false]);
   global.artifacts.artifacts.rarity = reduce("artifacts", ["id", "rarity"], [false, false]);
@@ -1144,18 +1189,17 @@ function readArtifacts() {
 // Call after readNames()
 //
 // global.info.character    -> array of { access, ascensionMaterials, baseATK, birthday, constellationName,
-//                                        constellations, cv, cvCN, cvJP, element, id, introduce, levelUpMaterials,
+//                                        constellations, cvCN, cvJP, element, id, introduce, levelUpMaterials,
 //                                        mainStat, mainValue, name, passiveDesc, passiveTitle, rarity,
 //                                        talentMaterials, time, title, type }, sorted by rarity
 // global.info.weapon       -> array of { access, ascensionMaterials, baseATK, introduce, mainStat, mainValue, name,
 //                                        rarity, skillContent, skillName, time, title, type }, sorted by rarity
 function readInfo() {
-  const names = Object.values(global.names.allAlias);
-  const dir = path.resolve(global.rootdir, "resources", "Version2", "info", "docs");
+  const dir = path.resolve(global.rootdir, "resources", "info", "doc");
   const info = ls(dir)
     .filter((c) => {
       const p = path.parse(c);
-      return ".json" === p.ext && names.includes(p.name);
+      return ".json" === p.ext;
     })
     .map((c) => {
       const p = path.parse(c);
@@ -1190,7 +1234,7 @@ function readEggs() {
   global.eggs.type = {};
   global.eggs.star = {};
 
-  ((mEggs || {}).items || []).forEach((c) => {
+  ((m_EGGS || {}).items || []).forEach((c) => {
     if (Array.isArray(c.names) && "string" === typeof c.type) {
       c.names.forEach((n) => {
         if ("string" === typeof n) {
@@ -1217,11 +1261,11 @@ function readEggs() {
 
 // global.qa:   regex -> settings (object)
 function readQa() {
-  if (Array.isArray(mQa?.settings)) {
+  if (Array.isArray(m_QA?.settings)) {
     Object.assign(
       global.qa,
       lodash
-        .chain(mQa.settings)
+        .chain(m_QA.settings)
         .filter(
           (c) =>
             Array.isArray(c?.match) &&
@@ -1230,7 +1274,7 @@ function readQa() {
             "" !== c?.reply &&
             ["text", "image", "executable", "command"].includes(c?.type)
         )
-        .map((c) => Object.assign(c, { ignoreCase: !!c.ignoreCase }))
+        .map((c) => Object.assign(c, { ignoreCase: !!c.ignoreCase, master: !!c.master }))
         .reduce((p, v) => {
           v.match.forEach((c) => (p[c] = lodash.omit(v, "match")));
           return p;
@@ -1274,8 +1318,8 @@ function readMaterial() {
 // global.command
 // global.master
 function readCommand() {
-  getCommand(mCommand, "command");
-  getCommand(mMaster, "master");
+  getCommand(m_COMMAND, "command");
+  getCommand(m_MASTER, "master");
 }
 
 // global.all.function
@@ -1293,9 +1337,9 @@ function getAll() {
   }
 
   global.all.functions = {};
-  global.all.functions.options = Object.assign({}, global.command.functions.options, global.master.functions.options);
-  global.all.functions.revert = Object.assign({}, global.command.functions.revert, global.master.functions.revert);
-  global.all.functions.type = Object.assign({}, global.command.functions.type, global.master.functions.type);
+  global.all.functions.options = { ...global.command.functions.options, ...global.master.functions.options };
+  global.all.functions.revert = { ...global.command.functions.revert, ...global.master.functions.revert };
+  global.all.functions.type = { ...global.command.functions.type, ...global.master.functions.type };
   merge(global.all, "function", global.command.function, global.master.function);
   merge(global.all.functions, "entrance", global.command.functions.entrance, global.master.functions.entrance);
 }
@@ -1315,9 +1359,9 @@ function readConfig() {
   readGreeting();
   readMenu();
   readProphecy();
-  readNames();
   readArtifacts();
   readInfo();
+  readNames();
   readEggs();
   readQa();
   readMaterial();

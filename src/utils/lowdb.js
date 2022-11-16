@@ -1,4 +1,7 @@
-import { JSONFileSync, MemorySync } from "lowdb";
+import { MemorySync } from "lowdb";
+import { JSONFileSync } from "lowdb/node";
+
+("use strict");
 
 class LowJSONCacheSync {
   constructor(filename) {
