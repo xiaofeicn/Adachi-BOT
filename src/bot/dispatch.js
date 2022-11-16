@@ -8,6 +8,7 @@ import { isGroupBan, toCqcode } from "#utils/oicq";
 import { getGroupOfStranger } from "#utils/oicq";
 import { iconvConvert } from "#utils/tools";
 import { getRandomInt } from "#utils/tools";
+import { chat } from "#plugins/tools/chat";
 
 ("use strict");
 
@@ -180,7 +181,8 @@ async function doPossibleCommand(msg, plugins, type, bot) {
   msg.name = msg.sender.nickname;
   msg.atMe = atMe;
   msg.groupOfStranger = groupOfStranger;
-
+  msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
+  doPossibleChat(msg, type, bot,atMe);
   // 不响应消息则当做一条已经指派插件的命令返回
   if (false === checkAuth(msg, global.innerAuthName.reply, false)) {
     return true;
