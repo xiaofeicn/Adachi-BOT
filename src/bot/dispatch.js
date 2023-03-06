@@ -182,7 +182,10 @@ async function doPossibleCommand(msg, plugins, type, bot) {
   msg.atMe = atMe;
   msg.groupOfStranger = groupOfStranger;
   msg.raw_message = msg.raw_message.replace(atMeReg, "").trimStart();
-  doPossibleChat(msg, type, bot,atMe);
+
+  if (false === match) {
+    doPossibleChat(msg, type, bot,atMe);
+  }
   // 不响应消息则当做一条已经指派插件的命令返回
   if (!checkAuth(msg, global.innerAuthName.reply, false)) {
     return true;
