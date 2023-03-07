@@ -14,11 +14,10 @@ async function speech(msg) {
         '喝什么 ', '求签 ', 'roll', '带话', '管理命令 ', 'help']
     var save = true;
     for (const botCommand in botCommands) {
-        if (msg.raw_message.toString().startsWith(botCommand) && msg.raw_message.toString().startsWith("#")) {
+        if (msg.raw_message.toString().startsWith(botCommand) || msg.raw_message.toString().startsWith("#")) {
             save = false
             break;
         }
-
 
     }
     if (save) {
