@@ -15,9 +15,7 @@ async function chat(msg) {
             break;
         }
     }
-    if (!say) {
-        return false;
-    }else {
+    if (say) {
         const url =
             "https://api.ownthink.com/bot?appid=f40e478ad5d244b3b286807ec5b46880" +
             "&userid=" +
