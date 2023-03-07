@@ -22,7 +22,7 @@ async function speech(msg) {
 
     }
     if (save) {
-        fs.appendFile("/raw_log.log", msg.raw_message.toString(), 'utf8', function (err) {
+        fs.appendFile("/raw_log.log", msg.raw_message.toString()+"\n", 'utf8', function (err) {
             if (err) {
                 throw new Error("追加数据失败")
             } else {
