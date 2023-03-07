@@ -1,4 +1,6 @@
 import fetch from "node-fetch";
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 async function speech(msg) {
     let response;
