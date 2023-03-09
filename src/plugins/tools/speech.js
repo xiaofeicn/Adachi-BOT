@@ -6,8 +6,9 @@ const require = createRequire(import.meta.url);
 async function speech(raw_message,uid) {
 
 
-    var myDate = new Date();
-    var time = myDate.toLocaleDateString().split('/').reverse().join('-');
+    var date = new Date();
+    var time = date.getFullYear() + '-' + formatNumber(date.getMonth() + 1) + '-' + formatNumber(date.getDay());
+
     var path=file =/raw_log/+time
     var file =/raw_log/+time+"/"+uid.toString()+".log"
     console.log(file)
@@ -56,6 +57,10 @@ async function speech(raw_message,uid) {
 
 }
 
+function formatNumber(n) {
+    n = n.toString()
+    return n[1] ? n : '0' + n
+}
 
 
 export {speech};
