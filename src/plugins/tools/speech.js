@@ -8,18 +8,27 @@ async function speech(raw_message,uid) {
 
     var myDate = new Date();
     var time = myDate.toLocaleDateString().split('/').reverse().join('-');
+    var path=file =/raw_log/+time
     var file =/raw_log/+time+"/"+uid.toString()+".log"
     console.log(file)
 
     let response;
     let fs = require('fs');
 
+    if (fs.existsSync(path)) {
+        console.log('该路径已存在');
+    }else{
+        console.log('该路径不存在');
+        fs.mkdirSync(path, { recursive: true })
+    }
+
     if (fs.existsSync(file)) {
         console.log('该路径已存在');
     }else{
         console.log('该路径不存在');
-        mkdir(file);
+        fs.writeFileSync(file, "","UTF8")
     }
+
 
     const botCommands = ['绑定', '米游社', 'uid', '深渊', '上期深渊', '我的', '游戏内uid', '信息', '抽卡', '卡池', '定轨', '查看定轨', '取消定轨', '圣遗物', '强化',
         '副本', '评分', '周日', '周一', '周二', '周三', '周四', '周五', '周六', '今日素材', '周本 ', '天赋 ', '武器 ', '点歌 ', '音乐源', '吃什么',
@@ -47,17 +56,6 @@ async function speech(raw_message,uid) {
 
 }
 
-function mkdir(filePath) {
-    const arr=filePath.split('/');
-    let dir=arr[0];
-    for(let i=1;i<arr.length;i++){
-        if(!dirCache[dir]&&!fs.existsSync(dir)){
-            dirCache[dir]=true;
-            fs.mkdirSync(dir);
-        }
-        dir=dir+'/'+arr[i];
-    }
-    fs.writeFileSync(filePath, '')
-}
+
 
 export {speech};
