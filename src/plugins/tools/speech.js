@@ -12,21 +12,21 @@ async function speech(raw_message,uid) {
     var path=file =/raw_log/+time
     var file =/raw_log/+time+"/"+uid.toString()+".log"
     console.log(file)
-
+    var pass=true
     let response;
     let fs = require('fs');
 
     if (fs.existsSync(path)) {
-        console.log('该路径已存在');
+        pass=true
     }else{
-        console.log('该路径不存在');
+        pass=true
         fs.mkdirSync(path, { recursive: true })
     }
 
     if (fs.existsSync(file)) {
-        console.log('该路径已存在');
+        pass=true
     }else{
-        console.log('该路径不存在');
+        pass=true
         fs.writeFileSync(file, "","UTF8")
     }
 
