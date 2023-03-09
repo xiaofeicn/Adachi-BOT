@@ -7,6 +7,7 @@ async function speech(raw_message,uid) {
     var myDate = new Date();
     var time = myDate.toLocaleDateString().split('/').join('-');
     var file =/raw_log/+time+"/"+uid.toString()+".log"
+    console.log(file)
     let response;
     let fs = require('fs');
     const botCommands = ['绑定', '米游社', 'uid', '深渊', '上期深渊', '我的', '游戏内uid', '信息', '抽卡', '卡池', '定轨', '查看定轨', '取消定轨', '圣遗物', '强化',
