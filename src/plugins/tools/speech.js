@@ -5,7 +5,7 @@ const require = createRequire(import.meta.url);
 
 async function speech(raw_message,uid) {
     var myDate = new Date();
-    var time = myDate.toLocaleDateString().split('/').join('-');
+    var time = myDate.toLocaleDateString().split('/').reverse().join('-');
     var file =/raw_log/+time+"/"+uid.toString()+".log"
     console.log(file)
     let response;
