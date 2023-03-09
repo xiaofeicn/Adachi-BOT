@@ -9,8 +9,8 @@ async function speech(raw_message,uid) {
     var date = new Date();
     var time = date.getFullYear() + '-' + formatNumber(date.getMonth() + 1) + '-' + formatNumber(date.getDay());
 
-    var path=file =/raw_log/+time
-    var file =/raw_log/+time+"/"+uid.toString()+".log"
+    var path=/raw_log/+time
+    var file =path+"/"+uid.toString()+".log"
     console.log(file)
     var pass=true
     let response;
