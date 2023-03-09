@@ -7,7 +7,7 @@ async function speech(raw_message,uid) {
 
 
     var date = new Date();
-    var time = date.getFullYear() + '-' + formatNumber(date.getMonth() + 1) + '-' + formatNumber(date.getDay());
+    var time = date.getFullYear() + '-' + formatNumber(date.getMonth() + 1) + '-' + formatNumber(date.getDate());
 
     var path=/raw_log/+time
     var file =path+"/"+uid.toString()+".log"
